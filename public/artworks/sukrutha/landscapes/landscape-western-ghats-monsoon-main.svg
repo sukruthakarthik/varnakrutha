@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 840" width="1200" height="840">
+  <defs><linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e6ece8"/><stop offset="1" stop-color="#9fb8a8"/></linearGradient></defs>
+  <rect width="1200" height="840" fill="url(#bg)"/>
+  <path d="M0 378 Q300 252 600 378 T1200 336 L1200 840 L0 840Z" fill="#e6ece8" opacity="0.9"/><path d="M0 487.20000000000005 Q300 361.20000000000005 600 487.20000000000005 T1200 445.20000000000005 L1200 840 L0 840Z" fill="#9fb8a8" opacity="0.9"/><path d="M0 596.4 Q300 470.4 600 596.4 T1200 554.4 L1200 840 L0 840Z" fill="#4e7a66" opacity="0.9"/><path d="M0 705.6 Q300 579.6 600 705.6 T1200 663.6 L1200 840 L0 840Z" fill="#23443a" opacity="0.9"/><rect x="0" y="0" width="1200" height="336" fill="#ffffff" opacity="0.35"/>
+  <text x="1170" y="810" text-anchor="end" font-family="Georgia, serif" font-size="28" fill="#ffffff" opacity="0.85">Monsoon over the Western Ghats — sample</text>
+</svg>

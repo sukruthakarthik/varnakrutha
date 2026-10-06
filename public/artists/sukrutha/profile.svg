@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1000" width="800" height="1000">
+  <rect width="800" height="1000" fill="#f3eadf"/>
+  <circle cx="400" cy="380" r="150" fill="#e2c9a6"/>
+  <path d="M130 1000 Q140 640 400 620 Q660 640 670 1000Z" fill="#9c4a2f"/>
+  <text x="400" y="960" text-anchor="middle" font-family="Georgia, serif" font-size="30" fill="#ffffff">Artist portrait — sample</text>
+</svg>

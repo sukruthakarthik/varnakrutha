@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900" width="1200" height="900">
+  <defs><linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fbe3c4"/><stop offset="1" stop-color="#f0a868"/></linearGradient></defs>
+  <rect width="1200" height="900" fill="url(#bg)"/>
+  
+        <circle cx="860" cy="252.00000000000003" r="90" fill="#f0a868" opacity="0.8"/>
+        <path d="M0 612 L1200 612 L1200 900 L0 900Z" fill="#b5553a" opacity="0.35"/>
+        <g fill="#b5553a">
+          <rect x="300" y="414" width="600" height="198"/>
+          <path d="M264 414 L600 234 L936 414Z"/>
+        </g>
+        <g fill="#5a2e22" opacity="0.85"><rect x="336.00000000000006" y="432" width="30" height="180"/><rect x="420.00000000000006" y="432" width="30" height="180"/><rect x="504.0000000000001" y="432" width="30" height="180"/><rect x="588.0000000000001" y="432" width="30" height="180"/><rect x="672.0000000000001" y="432" width="30" height="180"/><rect x="756.0000000000001" y="432" width="30" height="180"/><rect x="840.0000000000001" y="432" width="30" height="180"/></g>
+        <circle cx="420" cy="612" r="63.00000000000001" fill="none" stroke="#5a2e22" stroke-width="10"/><circle cx="780" cy="612" r="63.00000000000001" fill="none" stroke="#5a2e22" stroke-width="10"/>
+  <text x="1170" y="870" text-anchor="end" font-family="Georgia, serif" font-size="28" fill="#ffffff" opacity="0.85">Hampi Stone Chariot · detail 1 — sample</text>
+</svg>

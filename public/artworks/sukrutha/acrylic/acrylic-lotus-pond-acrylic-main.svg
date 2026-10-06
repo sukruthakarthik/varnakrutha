@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1200" width="1200" height="1200">
+  <defs><linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#eef2e6"/><stop offset="1" stop-color="#9cc3a2"/></linearGradient></defs>
+  <rect width="1200" height="1200" fill="url(#bg)"/>
+  
+        <rect x="0" y="0" width="1200" height="1200" fill="#9cc3a2" opacity="0.4"/>
+        
+          <ellipse cx="360" cy="760" rx="168.00000000000003" ry="48" fill="#3e6b52"/>
+          <ellipse cx="360" cy="720" rx="36" ry="96" fill="#e59bb0" transform="rotate(-40 360 750)"/><ellipse cx="360" cy="720" rx="36" ry="96" fill="#e59bb0" transform="rotate(-15 360 750)"/><ellipse cx="360" cy="720" rx="36" ry="96" fill="#e59bb0" transform="rotate(15 360 750)"/><ellipse cx="360" cy="720" rx="36" ry="96" fill="#e59bb0" transform="rotate(40 360 750)"/>
+          <ellipse cx="780" cy="580" rx="168.00000000000003" ry="48" fill="#3e6b52"/>
+          <ellipse cx="780" cy="540" rx="36" ry="96" fill="#e59bb0" transform="rotate(-40 780 570)"/><ellipse cx="780" cy="540" rx="36" ry="96" fill="#e59bb0" transform="rotate(-15 780 570)"/><ellipse cx="780" cy="540" rx="36" ry="96" fill="#e59bb0" transform="rotate(15 780 570)"/><ellipse cx="780" cy="540" rx="36" ry="96" fill="#e59bb0" transform="rotate(40 780 570)"/>
+          <ellipse cx="600" cy="976" rx="168.00000000000003" ry="48" fill="#3e6b52"/>
+          <ellipse cx="600" cy="936" rx="36" ry="96" fill="#e59bb0" transform="rotate(-40 600 966)"/><ellipse cx="600" cy="936" rx="36" ry="96" fill="#e59bb0" transform="rotate(-15 600 966)"/><ellipse cx="600" cy="936" rx="36" ry="96" fill="#e59bb0" transform="rotate(15 600 966)"/><ellipse cx="600" cy="936" rx="36" ry="96" fill="#e59bb0" transform="rotate(40 600 966)"/>
+  <text x="1170" y="1170" text-anchor="end" font-family="Georgia, serif" font-size="28" fill="#ffffff" opacity="0.85">Lotus Pond — sample</text>
+</svg>

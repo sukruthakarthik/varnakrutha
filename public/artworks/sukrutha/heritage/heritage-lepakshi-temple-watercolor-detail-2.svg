@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 814" width="1200" height="814">
+  <defs><linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f6e7d3"/><stop offset="1" stop-color="#e7b98f"/></linearGradient></defs>
+  <rect width="1200" height="814" fill="url(#bg)"/>
+  
+        <circle cx="820" cy="227.92000000000002" r="81.4" fill="#e7b98f" opacity="0.8"/>
+        <path d="M0 553.5200000000001 L1200 553.5200000000001 L1200 814 L0 814Z" fill="#b86b45" opacity="0.35"/>
+        <g fill="#b86b45">
+          <rect x="300" y="374.44000000000005" width="600" height="179.08"/>
+          <path d="M264 374.44000000000005 L600 211.6400000000001 L936 374.44000000000005Z"/>
+        </g>
+        <g fill="#6e3a26" opacity="0.85"><rect x="336.00000000000006" y="390.7200000000001" width="30" height="162.8"/><rect x="420.00000000000006" y="390.7200000000001" width="30" height="162.8"/><rect x="504.0000000000001" y="390.7200000000001" width="30" height="162.8"/><rect x="588.0000000000001" y="390.7200000000001" width="30" height="162.8"/><rect x="672.0000000000001" y="390.7200000000001" width="30" height="162.8"/><rect x="756.0000000000001" y="390.7200000000001" width="30" height="162.8"/><rect x="840.0000000000001" y="390.7200000000001" width="30" height="162.8"/></g>
+        
+  <text x="1170" y="784" text-anchor="end" font-family="Georgia, serif" font-size="28" fill="#ffffff" opacity="0.85">Lepakshi Temple · detail 2 — sample</text>
+</svg>

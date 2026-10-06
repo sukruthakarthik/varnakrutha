@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 2000" width="1200" height="2000">
+  <defs><linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fde9d2"/><stop offset="1" stop-color="#f2a65a"/></linearGradient></defs>
+  <rect width="1200" height="2000" fill="url(#bg)"/>
+  
+        <g><rect x="180" y="1550" width="840" height="144" fill="#f2a65a" opacity="0.95"/><rect x="222.00000000000006" y="1400" width="755.9999999999999" height="144" fill="#c0462f" opacity="0.9099999999999999"/><rect x="264.00000000000006" y="1250" width="671.9999999999999" height="144" fill="#f2a65a" opacity="0.87"/><rect x="306.00000000000006" y="1100" width="587.9999999999999" height="144" fill="#c0462f" opacity="0.83"/><rect x="348.00000000000006" y="950" width="503.9999999999999" height="144" fill="#f2a65a" opacity="0.7899999999999999"/><rect x="390.00000000000006" y="800" width="419.9999999999999" height="144" fill="#c0462f" opacity="0.75"/><rect x="432.00000000000006" y="650" width="335.9999999999999" height="144" fill="#f2a65a" opacity="0.71"/><rect x="474.00000000000006" y="500" width="251.9999999999999" height="144" fill="#c0462f" opacity="0.6699999999999999"/></g>
+        <path d="M456 500 Q600 240 744 500Z" fill="#3f6b5c"/>
+        <rect x="0" y="1700" width="1200" height="300" fill="#3f6b5c" opacity="0.5"/>
+  <text x="1170" y="1970" text-anchor="end" font-family="Georgia, serif" font-size="28" fill="#ffffff" opacity="0.85">Meenakshi Temple Gopuram — sample</text>
+</svg>

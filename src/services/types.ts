@@ -1,3 +1,4 @@
+import type { ArtistProfileInput } from "@/features/artists/schemas";
 import type { ArtworkInput } from "@/features/artworks/schemas";
 import type { InquiryInput } from "@/features/inquiries/schemas";
 import type {
@@ -21,6 +22,7 @@ export interface ArtworkFilters {
 export interface ArtistRepository {
   list(): Promise<Artist[]>;
   getBySlug(slug: string): Promise<Artist | null>;
+  updateProfile(id: string, input: ArtistProfileInput): Promise<Artist>;
 }
 
 export interface ArtworkRepository {
@@ -47,9 +49,16 @@ export interface UploadImageParams {
   file: File;
 }
 
+export interface UploadProfileImageParams {
+  artistSlug: string;
+  file: File;
+}
+
 export interface StorageService {
   /** Returns a publicly accessible URL for the uploaded image. */
   uploadArtworkImage(params: UploadImageParams): Promise<string>;
+  /** Stored under <artist-slug>/profile/; returns a publicly accessible URL. */
+  uploadProfileImage(params: UploadProfileImageParams): Promise<string>;
 }
 
 export interface DataSource {

@@ -23,7 +23,19 @@ const globalStore = globalThis as unknown as {
 async function load(): Promise<MockDb> {
   try {
     const raw = await fs.readFile(DB_PATH, "utf8");
-    return JSON.parse(raw) as MockDb;
+    const db = JSON.parse(raw) as MockDb;
+    // Databases saved before the About fields existed lack them; fill them from the seed.
+    db.artists = db.artists.map((a) => {
+      const seed = seedArtists.find((s) => s.id === a.id);
+      return {
+        ...a,
+        journey: a.journey ?? seed?.journey ?? [],
+        inspiration: a.inspiration ?? seed?.inspiration ?? [],
+        skills: a.skills ?? seed?.skills ?? [],
+        techniques: a.techniques ?? seed?.techniques ?? [],
+      };
+    });
+    return db;
   } catch {
     return structuredClone({ artists: seedArtists, artworks: seedArtworks, inquiries: [] });
   }

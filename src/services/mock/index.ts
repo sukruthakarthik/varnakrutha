@@ -9,6 +9,7 @@ import {
   type ArtworkFilters,
   type DataSource,
   type UploadImageParams,
+  type UploadProfileImageParams,
 } from "@/services/types";
 import type { Artwork, Inquiry } from "@/types";
 import { getMockDb, persistMockDb } from "./store";
@@ -57,6 +58,16 @@ export function createMockDataSource(): DataSource {
       },
       async getBySlug(slug) {
         return (await getMockDb()).artists.find((a) => a.slug === slug) ?? null;
+      },
+      async updateProfile(id, input) {
+        const db = await getMockDb();
+        const index = db.artists.findIndex((a) => a.id === id);
+        const existing = db.artists[index];
+        if (!existing) throw new RepositoryError("Artist not found", "not_found");
+        const updated = { ...existing, ...input };
+        db.artists[index] = updated;
+        await persistMockDb(db);
+        return updated;
       },
     },
 
@@ -183,6 +194,14 @@ export function createMockDataSource(): DataSource {
         await fs.mkdir(dir, { recursive: true });
         await fs.writeFile(path.join(dir, fileName), bytes);
         return `/artworks/${artistSlug}/${folder}/${fileName}`;
+      },
+      async uploadProfileImage({ artistSlug, file }: UploadProfileImageParams) {
+        const { bytes, extension } = await validateImageFile(file);
+        const fileName = buildImageFileName("profile", artistSlug, extension);
+        const dir = path.join(process.cwd(), "public", "artworks", artistSlug, "profile");
+        await fs.mkdir(dir, { recursive: true });
+        await fs.writeFile(path.join(dir, fileName), bytes);
+        return `/artworks/${artistSlug}/profile/${fileName}`;
       },
     },
   };

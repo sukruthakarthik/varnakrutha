@@ -1,11 +1,13 @@
 import "server-only";
 import type { PostgrestError, SupabaseClient } from "@supabase/supabase-js";
 import { CATEGORY_META, STORAGE_BUCKET } from "@/lib/constants";
+import type { ArtistProfileInput } from "@/features/artists/schemas";
 import type { ArtworkInput } from "@/features/artworks/schemas";
 import { buildImageFileName, validateImageFile } from "@/services/image-validation";
 import { RepositoryError, type ArtworkFilters, type DataSource } from "@/services/types";
 import type {
   Artist,
+  ArtistTechnique,
   Artwork,
   Availability,
   Category,
@@ -24,6 +26,10 @@ interface ArtistRow {
   facebook: string | null;
   pinterest: string | null;
   website: string | null;
+  journey: string[] | null;
+  inspiration: string[] | null;
+  skills: string[] | null;
+  techniques: ArtistTechnique[] | null;
   created_at: string;
 }
 
@@ -89,7 +95,26 @@ const toArtist = (r: ArtistRow): Artist => ({
   facebook: r.facebook,
   pinterest: r.pinterest,
   website: r.website,
+  journey: r.journey ?? [],
+  inspiration: r.inspiration ?? [],
+  skills: r.skills ?? [],
+  techniques: r.techniques ?? [],
   createdAt: r.created_at,
+});
+
+const toArtistProfileRow = (input: ArtistProfileInput) => ({
+  name: input.name,
+  bio: input.bio,
+  profile_image: input.profileImage,
+  instagram: input.instagram,
+  youtube: input.youtube,
+  facebook: input.facebook,
+  pinterest: input.pinterest,
+  website: input.website,
+  journey: input.journey,
+  inspiration: input.inspiration,
+  skills: input.skills,
+  techniques: input.techniques,
 });
 
 const toArtwork = (r: ArtworkRow): Artwork => ({
@@ -173,6 +198,18 @@ export function createSupabaseDataSource(client: SupabaseClient): DataSource {
           .maybeSingle<ArtistRow>();
         fail(error);
         return data ? toArtist(data) : null;
+      },
+      async updateProfile(id, input) {
+        const { data, error } = await client
+          .from("artists")
+          .update(toArtistProfileRow(input))
+          .eq("id", id)
+          .select("*")
+          .maybeSingle<ArtistRow>();
+        fail(error);
+        // RLS filters out rows the user may not update, which surfaces as no row rather than an error.
+        if (!data) throw new RepositoryError("Artist not found", "not_found");
+        return toArtist(data);
       },
     },
 
@@ -294,6 +331,18 @@ export function createSupabaseDataSource(client: SupabaseClient): DataSource {
         const { bytes, extension, contentType } = await validateImageFile(file);
         const folder = CATEGORY_META[category].storageFolder;
         const objectPath = `${artistSlug}/${folder}/${buildImageFileName(category, artworkSlug, extension)}`;
+        const bucket = client.storage.from(STORAGE_BUCKET);
+        const { error } = await bucket.upload(objectPath, bytes, {
+          contentType,
+          cacheControl: "31536000",
+          upsert: false,
+        });
+        if (error) throw new RepositoryError(error.message);
+        return bucket.getPublicUrl(objectPath).data.publicUrl;
+      },
+      async uploadProfileImage({ artistSlug, file }) {
+        const { bytes, extension, contentType } = await validateImageFile(file);
+        const objectPath = `${artistSlug}/profile/${buildImageFileName("profile", artistSlug, extension)}`;
         const bucket = client.storage.from(STORAGE_BUCKET);
         const { error } = await bucket.upload(objectPath, bytes, {
           contentType,

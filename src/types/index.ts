@@ -15,6 +15,11 @@ export type Availability = (typeof AVAILABILITY)[number];
 export const INQUIRY_STATUS = ["new", "read", "archived"] as const;
 export type InquiryStatus = (typeof INQUIRY_STATUS)[number];
 
+export interface ArtistTechnique {
+  name: string;
+  description: string;
+}
+
 export interface Artist {
   id: string;
   name: string;
@@ -26,6 +31,11 @@ export interface Artist {
   facebook: string | null;
   pinterest: string | null;
   website: string | null;
+  /** About page paragraphs. */
+  journey: string[];
+  inspiration: string[];
+  skills: string[];
+  techniques: ArtistTechnique[];
   createdAt: string;
 }
 

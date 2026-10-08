@@ -68,7 +68,7 @@ In **mock mode**:
    - **Edit the seed:** update the entries in `src/data/seed.ts`, change the `.svg` extension in `seedImagePath` to `.jpg`, and run `npm run reset-mock-db`.
    - **Use the admin:** go to `/admin/artworks/new`, fill in the details and upload the images. Files are named automatically.
 4. Replace `public/artists/sukrutha/profile.svg` with a real portrait and update `profileImage` in the seed.
-5. Update the social links in the seed and the About page text in `src/features/artists/content.ts`.
+5. Sign in to `/admin/profile` and set your photo, social links and About page text.
 
 Images uploaded through the admin are compressed in the browser first: resized to 2400px on the long edge, saved as WebP (JPEG where the browser can't encode WebP) and stripped of metadata such as GPS location. You can upload photos straight from a phone or camera. Images added directly to `public/` are not compressed, so keep those at about 2000px and under 2 MB. `next/image` generates responsive sizes and thumbnails for you.
 
@@ -77,7 +77,7 @@ Images uploaded through the admin are compressed in the browser first: resized t
 ## Switching to Supabase
 
 1. Create a project at [supabase.com](https://supabase.com).
-2. Apply the schema by pasting `supabase/migrations/20260925000000_initial_schema.sql` into the SQL editor, or run:
+2. Apply the schema by pasting each file in `supabase/migrations/` into the SQL editor, oldest first, or run:
    ```bash
    npx supabase link --project-ref <ref>
    npx supabase db push

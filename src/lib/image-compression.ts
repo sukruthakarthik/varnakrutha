@@ -16,6 +16,13 @@ export const DEFAULT_COMPRESSION: CompressionOptions = {
   maxBytes: MAX_IMAGE_BYTES,
 };
 
+/** Portraits are shown at most ~40% of the page width, so they need less resolution. */
+export const PROFILE_COMPRESSION: CompressionOptions = {
+  maxDimension: 1600,
+  quality: 0.85,
+  maxBytes: MAX_IMAGE_BYTES,
+};
+
 /** Refuse anything larger than this before decoding, to avoid exhausting browser memory. */
 export const MAX_SOURCE_BYTES = 60 * 1024 * 1024;
 

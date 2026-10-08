@@ -2,7 +2,7 @@
 -- Image paths are relative and served from the Next.js /public folder until
 -- you upload real images to the Supabase "artworks" bucket via /admin.
 
-insert into public.artists (id, name, slug, bio, profile_image, instagram, youtube, facebook, pinterest, created_at)
+insert into public.artists (id, name, slug, bio, profile_image, instagram, youtube, facebook, pinterest, journey, inspiration, skills, techniques, created_at)
 values (
   '00000000-0000-4000-8000-000000000001',
   'Sukrutha Karthik',
@@ -13,6 +13,29 @@ values (
   'https://www.youtube.com/',
   'https://www.facebook.com/',
   'https://www.pinterest.com/',
+  array[
+    'Sukrutha''s relationship with art began in childhood, sketching the temple towers and village streets she saw on family journeys across South India.',
+    'Alongside a professional career, she kept returning to paper and canvas — first as a quiet hobby, then as a serious practice of on-location studies, workshops and long studio sessions.',
+    'Today her work focuses on India''s architectural heritage and the landscapes that frame it, painted with a patient attention to light, texture and time.'
+  ],
+  array[
+    'Ancient temples and ruins, where every carved surface holds a story.',
+    'Monsoon skies, river valleys and the changing light of the Western Ghats.',
+    'Traditional Indian art forms — kolam, murals and temple sculpture.'
+  ],
+  array[
+    'Architectural drawing',
+    'Watercolor washes & glazing',
+    'Acrylic layering',
+    'On-location sketching',
+    'Composition & perspective',
+    'Colour theory'
+  ],
+  '[
+    {"name": "Watercolor", "description": "Wet-on-wet skies and layered glazes that let light pass through the paper."},
+    {"name": "Acrylic", "description": "Rich, opaque colour built up in textured layers for depth and warmth."},
+    {"name": "Graphite & Ink", "description": "Quick on-site studies that capture structure, proportion and mood."}
+  ]'::jsonb,
   '2026-01-01T00:00:00Z'
 )
 on conflict (id) do nothing;

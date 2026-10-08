@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ExternalLink, Image as ImageIcon, LayoutDashboard, LogOut, MessageSquare } from "lucide-react";
+import { ExternalLink, Image as ImageIcon, LayoutDashboard, LogOut, MessageSquare, UserRound } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { signOut } from "../auth-actions";
 
@@ -10,6 +10,7 @@ const NAV = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
   { href: "/admin/artworks", label: "Artworks", icon: ImageIcon },
   { href: "/admin/inquiries", label: "Inquiries", icon: MessageSquare },
+  { href: "/admin/profile", label: "Profile", icon: UserRound },
 ];
 
 export function AdminSidebar({ artistName }: { artistName: string }) {

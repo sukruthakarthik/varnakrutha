@@ -31,6 +31,7 @@ Hosting stack: **Supabase** (database, image storage, admin login) + **Vercel** 
 1. Open **SQL Editor → New query**.
 2. Paste the full contents of `supabase/migrations/20260925000000_initial_schema.sql`.
 3. Click **Run**. It should report **Success**.
+4. Do the same with every other file in `supabase/migrations/`, oldest first (currently `20261008000000_fix_storage_policies.sql`, which fixes image uploads).
 
 This creates:
 - the tables: `artists`, `artworks`, `artwork_images`, `inquiries` and `artist_admins`
@@ -245,7 +246,7 @@ Most visitors will arrive from Instagram on a phone, inside Instagram's in-app b
 - [ ] Delete or replace the **sample artworks** from `seed.sql`. They have made-up prices and placeholder SVG images.
 - [ ] Replace the placeholder social links (`https://www.instagram.com/` etc.) in the `artists` row with your real profile URLs.
 - [ ] Set `NEXT_PUBLIC_CONTACT_EMAIL` and `NEXT_PUBLIC_WHATSAPP_NUMBER` (step 2.2). Use an email you actually receive; a domain address such as `hello@artbysukrutha.com` only works once you own the domain and have set up mail for it.
-- [ ] Replace `profile.svg` and the About text in `src/features/artists/content.ts`.
+- [ ] Upload your profile photo and fill in the About text at **/admin/profile**.
 - [ ] Turn off public sign-ups in Supabase (step 1.4).
 - [ ] Read the Privacy Policy (`src/app/(public)/privacy/page.tsx`) and adjust it if anything doesn't match how you handle enquiries.
 

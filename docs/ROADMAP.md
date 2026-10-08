@@ -20,7 +20,7 @@ The data layer is already built for many artists:
 
 | Area | Already built | Still to build |
 |---|---|---|
-| **Database** | Every artwork and inquiry has an `artist_id` | Per-artist profile fields: tagline, About content (journey, skills, techniques), contact email, theme colour, plan |
+| **Database** | Every artwork and inquiry has an `artist_id`; About content (journey, inspiration, skills, techniques) and profile photo are per-artist, edited at `/admin/profile` | Per-artist tagline, contact email, theme colour, plan |
 | **Security (RLS)** | Artists edit only their own data and read only their own inquiries | Nothing more needed |
 | **Storage** | Separate folder per artist | Per-artist limits (e.g. Free = 20 artworks) |
 | **Public site** | Hard-wired to one artist through an env var | `/artists/[artist]` routes that resolve the artist from the URL |
@@ -61,7 +61,7 @@ flowchart LR
 
 1. **Multi-artist foundation**
    - `/artists/[artist]` routes
-   - per-artist branding stored in the database (move `src/features/artists/content.ts` into the database)
+   - per-artist branding stored in the database (About content and the profile photo already are, edited at `/admin/profile`)
    - admin tied to the logged-in artist
 2. **Invite-only onboarding**
    - you invite an artist by email; they set a password and complete the onboarding wizard

@@ -4,7 +4,6 @@ import Link from "next/link";
 import { SectionHeading } from "@/components/common/section-heading";
 import { SocialLinks } from "@/components/common/social-links";
 import { Button } from "@/components/ui/button";
-import { getArtistProfileContent } from "@/features/artists/content";
 import { defaultOpenGraph } from "@/lib/site";
 import { getCurrentArtist } from "@/services";
 
@@ -20,7 +19,7 @@ export const metadata: Metadata = {
 
 export default async function AboutPage() {
   const artist = await getCurrentArtist();
-  const content = getArtistProfileContent(artist.slug);
+  const { journey, inspiration, skills, techniques } = artist;
 
   return (
     <div className="py-16 md:py-20">
@@ -44,55 +43,63 @@ export default async function AboutPage() {
         </div>
       </section>
 
-      {content && (
-        <>
-          <section className="container-page mt-24 grid gap-12 md:grid-cols-2 md:gap-20">
+      {(journey.length > 0 || inspiration.length > 0) && (
+        <section className="container-page mt-24 grid gap-12 md:grid-cols-2 md:gap-20">
+          {journey.length > 0 && (
             <div className="space-y-5">
               <h2 className="text-3xl md:text-4xl">Artistic Journey</h2>
-              {content.journey.map((p, i) => (
+              {journey.map((p, i) => (
                 <p key={i} className="leading-relaxed text-foreground/80">
                   {p}
                 </p>
               ))}
             </div>
+          )}
+          {inspiration.length > 0 && (
             <div className="space-y-5">
               <h2 className="text-3xl md:text-4xl">Inspiration</h2>
               <ul className="space-y-4">
-                {content.inspiration.map((item) => (
-                  <li key={item} className="border-l-2 border-primary pl-4 leading-relaxed text-foreground/80">
+                {inspiration.map((item, i) => (
+                  <li key={i} className="border-l-2 border-primary pl-4 leading-relaxed text-foreground/80">
                     {item}
                   </li>
                 ))}
               </ul>
             </div>
-          </section>
+          )}
+        </section>
+      )}
 
-          <section className="mt-24 bg-secondary/50 py-16 md:py-20">
-            <div className="container-page grid gap-12 md:grid-cols-[1fr_2fr] md:gap-20">
+      {(skills.length > 0 || techniques.length > 0) && (
+        <section className="mt-24 bg-secondary/50 py-16 md:py-20">
+          <div className="container-page grid gap-12 md:grid-cols-[1fr_2fr] md:gap-20">
+            {skills.length > 0 && (
               <div className="space-y-5">
                 <h2 className="text-3xl md:text-4xl">Skills</h2>
                 <ul className="flex flex-wrap gap-2">
-                  {content.skills.map((s) => (
-                    <li key={s} className="rounded-full border border-foreground/15 bg-background px-4 py-1.5 text-sm">
+                  {skills.map((s, i) => (
+                    <li key={i} className="rounded-full border border-foreground/15 bg-background px-4 py-1.5 text-sm">
                       {s}
                     </li>
                   ))}
                 </ul>
               </div>
-              <div className="space-y-5">
+            )}
+            {techniques.length > 0 && (
+              <div className="space-y-5 md:col-start-2">
                 <h2 className="text-3xl md:text-4xl">Techniques</h2>
                 <dl className="grid gap-6 sm:grid-cols-3">
-                  {content.techniques.map((t) => (
-                    <div key={t.name} className="space-y-2">
+                  {techniques.map((t, i) => (
+                    <div key={i} className="space-y-2">
                       <dt className="font-serif text-2xl text-primary">{t.name}</dt>
                       <dd className="text-sm leading-relaxed text-foreground/80">{t.description}</dd>
                     </div>
                   ))}
                 </dl>
               </div>
-            </div>
-          </section>
-        </>
+            )}
+          </div>
+        </section>
       )}
 
       <section className="container-page mt-24 text-center">

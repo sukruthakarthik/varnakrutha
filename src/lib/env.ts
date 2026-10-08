@@ -7,8 +7,12 @@ const publicSchema = z.object({
   NEXT_PUBLIC_SUPABASE_URL: z.string().url().optional().or(z.literal("")),
   NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().optional(),
   NEXT_PUBLIC_CONTACT_EMAIL: z.string().email().optional(),
-  // International format, digits only (e.g. 919876543210).
-  NEXT_PUBLIC_WHATSAPP_NUMBER: z.string().regex(/^\d{8,15}$/, "Digits only, with country code").optional(),
+  // International format with country code; "+", spaces, dashes and brackets are stripped (e.g. +91 98765 43210).
+  NEXT_PUBLIC_WHATSAPP_NUMBER: z
+    .string()
+    .transform((v) => v.replace(/[\s()+-]/g, ""))
+    .pipe(z.string().regex(/^\d{8,15}$/, "Use the number with its country code, e.g. +91 98765 43210"))
+    .optional(),
 });
 
 // NEXT_PUBLIC_* must be referenced literally so Next.js can inline them in client bundles.

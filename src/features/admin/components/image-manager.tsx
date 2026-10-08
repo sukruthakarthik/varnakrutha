@@ -6,9 +6,10 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { uploadArtworkImage } from "@/features/artworks/actions";
 import { ArtworkImage } from "@/features/artworks/components/artwork-image";
-import { ALLOWED_IMAGE_TYPES, MAX_IMAGE_BYTES, MAX_IMAGE_LABEL } from "@/lib/constants";
+import { DEFAULT_COMPRESSION, compressImage } from "@/lib/image-compression";
 import { cn } from "@/lib/utils";
 import type { Category } from "@/types";
+import { formatBytes } from "@/utils/format";
 
 interface ImageManagerProps {
   images: string[];
@@ -20,7 +21,8 @@ interface ImageManagerProps {
 
 export function ImageManager({ images, cover, category, slug, onChange }: ImageManagerProps) {
   const inputRef = useRef<HTMLInputElement>(null);
-  const [uploading, setUploading] = useState(0);
+  const [status, setStatus] = useState<string | null>(null);
+  const busy = status !== null;
 
   async function handleFiles(files: FileList | null) {
     if (!files?.length) return;
@@ -28,31 +30,53 @@ export function ImageManager({ images, cover, category, slug, onChange }: ImageM
       toast.error("Add a title first so images can be named correctly.");
       return;
     }
-    const accepted = Array.from(files).filter((f) => {
-      const ok = (ALLOWED_IMAGE_TYPES as readonly string[]).includes(f.type) && f.size <= MAX_IMAGE_BYTES;
-      if (!ok) toast.error(`${f.name}: use JPEG, PNG or WebP under ${MAX_IMAGE_LABEL}`);
-      return ok;
-    });
 
-    setUploading((n) => n + accepted.length);
+    const list = Array.from(files);
     let next = [...images];
     let nextCover = cover;
-    for (const file of accepted) {
-      const fd = new FormData();
-      fd.set("file", file);
-      fd.set("category", category);
-      fd.set("slug", slug);
-      const res = await uploadArtworkImage(fd);
-      setUploading((n) => n - 1);
-      if (!res.ok) {
-        toast.error(`${file.name}: ${res.error}`);
-        continue;
+    let uploaded = 0;
+    let originalTotal = 0;
+    let compressedTotal = 0;
+
+    try {
+      for (const [i, original] of list.entries()) {
+        const progress = list.length > 1 ? ` ${i + 1} of ${list.length}` : "";
+        let file: File;
+        try {
+          setStatus(`Compressing${progress}…`);
+          ({ file } = await compressImage(original));
+        } catch (error) {
+          toast.error(`${original.name}: ${error instanceof Error ? error.message : "Couldn't compress this image."}`);
+          continue;
+        }
+
+        setStatus(`Uploading${progress}…`);
+        const fd = new FormData();
+        fd.set("file", file);
+        fd.set("category", category);
+        fd.set("slug", slug);
+        const res = await uploadArtworkImage(fd);
+        if (!res.ok) {
+          toast.error(`${original.name}: ${res.error}`);
+          continue;
+        }
+        uploaded += 1;
+        originalTotal += original.size;
+        compressedTotal += file.size;
+        next = [...next, res.data.url];
+        nextCover ??= res.data.url;
+        onChange(next, nextCover);
       }
-      next = [...next, res.data.url];
-      nextCover ??= res.data.url;
-      onChange(next, nextCover);
+    } finally {
+      setStatus(null);
+      if (inputRef.current) inputRef.current.value = "";
     }
-    if (inputRef.current) inputRef.current.value = "";
+
+    if (uploaded > 0) {
+      toast.success(
+        `${uploaded} image${uploaded > 1 ? "s" : ""} uploaded · ${formatBytes(originalTotal)} → ${formatBytes(compressedTotal)}`,
+      );
+    }
   }
 
   function move(index: number, delta: -1 | 1) {
@@ -102,17 +126,20 @@ export function ImageManager({ images, cover, category, slug, onChange }: ImageM
       <input
         ref={inputRef}
         type="file"
-        accept={ALLOWED_IMAGE_TYPES.join(",")}
+        accept="image/*,.heic,.heif"
         multiple
         className="sr-only"
         id="artwork-images"
         onChange={(e) => handleFiles(e.target.files)}
       />
-      <Button type="button" variant="outline" onClick={() => inputRef.current?.click()} disabled={uploading > 0}>
-        {uploading > 0 ? <Loader2 className="animate-spin" aria-hidden /> : <Upload aria-hidden />}
-        {uploading > 0 ? `Uploading ${uploading}…` : "Upload images"}
+      <Button type="button" variant="outline" onClick={() => inputRef.current?.click()} disabled={busy}>
+        {busy ? <Loader2 className="animate-spin" aria-hidden /> : <Upload aria-hidden />}
+        {status ?? "Upload images"}
       </Button>
-      <p className="text-xs text-muted-foreground">JPEG, PNG or WebP, up to {MAX_IMAGE_LABEL} each. The starred image is used as the cover.</p>
+      <p className="text-xs text-muted-foreground">
+        Upload photos straight from your phone or camera. They are resized to {DEFAULT_COMPRESSION.maxDimension}px and
+        compressed automatically, and location data is removed. The starred image is used as the cover.
+      </p>
     </div>
   );
 }

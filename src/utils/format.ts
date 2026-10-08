@@ -32,3 +32,9 @@ export function truncate(text: string | null, max: number): string {
   if (!text) return "";
   return text.length > max ? `${text.slice(0, max).trimEnd()}…` : text;
 }
+
+export function formatBytes(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}

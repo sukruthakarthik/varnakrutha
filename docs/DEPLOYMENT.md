@@ -190,7 +190,7 @@ You do **not** need to redeploy for content changes (artworks, images, availabil
 | Page shows "Something went wrong" | Open Vercel **Deployments → latest → Logs** and check the red errors. |
 | Admin shows "This account does not have admin access" | Step 1.5 didn't insert a row. Check the email and run it again. |
 | Login shows "Invalid email or password" | Check that the user exists and **Auto Confirm User** was ticked (step 1.4). |
-| Image upload fails | Check that the bucket `artworks` exists in **Storage** (created by step 1.2). Use JPEG, PNG or WebP under 4 MB (Vercel rejects larger uploads). |
+| Image upload fails | Check that the bucket `artworks` exists in **Storage** (created by step 1.2). Images are compressed in the browser before upload; if one still fails, the error names the file. HEIC photos only work in Safari, so export them as JPEG elsewhere. |
 | Contact form and admin fail; Supabase dashboard shows the project as **Paused** | The free project paused after about a week with no database activity. Click **Restore project** in the dashboard. Then check that the keep-alive cron job is running (Vercel → Settings → Cron Jobs) and that `CRON_SECRET` is set. |
 
 ---
@@ -216,7 +216,7 @@ The limits that matter are **monthly data transfer and storage**, not how many p
 | Supabase inactivity pause | ~1 week idle | Prevented by the daily keep-alive cron. Without it, the contact form and admin stop working until you restore the project. |
 | Supabase auth | 50,000 monthly users | Not a concern (one admin). |
 
-Uploads are limited to **4 MB** each (Vercel's request size limit). Upload images at about **2000 px on the long edge and 1–2 MB each** to roughly double how many fit in storage.
+The admin compresses every image in the browser before uploading: it is resized to 2400 px on the long edge and saved as WebP, usually 0.3–1.5 MB. That keeps uploads under Vercel's 4.5 MB request limit and fits roughly **1,000+ images** in the 1 GB free storage.
 
 | Stage | Plan | Rough capacity |
 | --- | --- | --- |
@@ -250,7 +250,7 @@ Most visitors will arrive from Instagram on a phone, inside Instagram's in-app b
 - [ ] Read the Privacy Policy (`src/app/(public)/privacy/page.tsx`) and adjust it if anything doesn't match how you handle enquiries.
 
 ### Link previews (Instagram DMs, WhatsApp)
-- Artwork pages use the **full-size uploaded image** as the preview image. WhatsApp and Instagram often skip previews for large images (roughly over 300–600 KB). Upload images at about 2000 px and 1–2 MB, and test with a real share.
+- Artwork pages use the uploaded cover image as the preview image. Uploads are compressed automatically, but WhatsApp and Instagram can still skip previews for images over roughly 300–600 KB, so test with a real share.
 - Preview images are cached by Meta and WhatsApp. If you change an image, the old preview may keep showing for days. Use the [Facebook Sharing Debugger](https://developers.facebook.com/tools/debug/) to refresh it.
 - `NEXT_PUBLIC_SITE_URL` must be the exact live URL. A wrong value gives broken preview images and canonical links.
 
@@ -272,7 +272,9 @@ Most visitors will arrive from Instagram on a phone, inside Instagram's in-app b
 - The daily Vercel Cron job in `vercel.json` prevents this by calling `/api/keep-alive`, which runs one read query. It needs `CRON_SECRET` set (step 2.2).
 
 ### Image uploads on Vercel
-- Vercel limits a function request body to **4.5 MB**, and uploads go through a server action, so the admin accepts images up to **4 MB**. Resize larger photos before uploading.
+- Vercel limits a function request body to **4.5 MB**. The admin compresses each photo in your browser before uploading (resized to 2400 px, WebP, under 4 MB), so you can upload photos straight from your phone or camera.
+- Compression also strips hidden metadata, including the **GPS location** that phone cameras store in photos.
+- iPhone **HEIC** photos can be compressed in Safari only. In other browsers, export them as JPEG first (or set the iPhone camera to **Most Compatible**).
 
 ### Links and URLs
 - Changing an artwork's **slug** breaks old links already posted in captions, stories and DMs. Keep slugs stable once shared.

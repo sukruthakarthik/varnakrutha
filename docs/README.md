@@ -16,7 +16,7 @@ An online art gallery and artist portfolio for **Sukrutha Karthik**. The archite
 | **About** | Portrait, biography, journey, inspiration, skills, techniques, social links |
 | **Contact** | Validated form (RHF + Zod on the client and server), honeypot, rate limiting, saved to the database; optional email and WhatsApp click-to-chat links |
 | **Privacy** | `/privacy` policy page (India's DPDP Act), linked from the contact form and footer |
-| **Admin** (`/admin`) | Dashboard stats; add, edit and delete artworks; set available, reserved or sold; image upload, reorder and cover selection; inquiry management |
+| **Admin** (`/admin`) | Dashboard stats; add, edit and delete artworks; set available, reserved or sold; image upload with in-browser compression, reorder and cover selection; inquiry management |
 | **SEO** | Per-page metadata, Open Graph and Twitter cards, generated OG image, `robots.txt`, `sitemap.xml` |
 | **Quality** | Error boundaries, loading skeletons, empty states, WCAG-minded markup (skip link, focus rings, aria labels, AA contrast, reduced motion) |
 
@@ -70,7 +70,7 @@ In **mock mode**:
 4. Replace `public/artists/sukrutha/profile.svg` with a real portrait and update `profileImage` in the seed.
 5. Update the social links in the seed and the About page text in `src/features/artists/content.ts`.
 
-For the best results, use JPEG or WebP images about 2000px on the long edge and under 4 MB (the upload limit, set by Vercel's 4.5 MB request cap). `next/image` generates responsive sizes and thumbnails for you.
+Images uploaded through the admin are compressed in the browser first: resized to 2400px on the long edge, saved as WebP (JPEG where the browser can't encode WebP) and stripped of metadata such as GPS location. You can upload photos straight from a phone or camera. Images added directly to `public/` are not compressed, so keep those at about 2000px and under 2 MB. `next/image` generates responsive sizes and thumbnails for you.
 
 ---
 

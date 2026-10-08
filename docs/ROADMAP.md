@@ -100,7 +100,7 @@ flowchart LR
 | 4 | **Digital products** | High-res wallpapers, sketch packs, recorded tutorials | Low effort, no shipping |
 | 5 | **Workshops and classes** | Paid online or in-person sessions booked on the site | Artist income and brand building |
 | 6 | **Commission per sale** | Platform takes 10–25% of each artist's sale | Multi-artist phase |
-| 7 | **Artist subscriptions** | Free tier (limited artworks); Pro tier (unlimited, custom domain, analytics, alerts, lower commission) | Multi-artist phase |
+| 7 | **Artist subscriptions** | Free tier (limited artworks); Pro tier (unlimited, custom domain, analytics, alerts, lower commission, higher-resolution uploads via the compression presets in `src/lib/image-compression.ts`) | Multi-artist phase |
 | 8 | **Featured placement** | Artists pay to appear on the home page or in collections | Once there is traffic |
 
 **Payments:** use **Razorpay** (INR, UPI, cards, netbanking). For the multi-artist phase, **Razorpay Route** splits each payment between the artist and the platform commission.

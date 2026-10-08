@@ -49,6 +49,10 @@ export default async function PrivacyPage() {
             <li>the subject and message you write, and the artwork you asked about</li>
           </ul>
           <p className="mt-3">
+            When an artist applies to be featured, we also collect their city, the links they share to their
+            work, and what they write about themselves.
+          </p>
+          <p className="mt-3">
             We do not use advertising or tracking cookies. Browsing the gallery does not require you to share
             any personal details.
           </p>
@@ -58,7 +62,7 @@ export default async function PrivacyPage() {
           <h2>How we use it</h2>
           <p>
             Only to reply to your message and, if you go ahead, to arrange a purchase, commission or
-            delivery. We do not sell your details, share them for marketing, or add you to a mailing list.
+            delivery. Artist applications are used only to review the application and reply to the artist. We do not sell your details, share them for marketing, or add you to a mailing list.
           </p>
         </section>
 
@@ -74,7 +78,7 @@ export default async function PrivacyPage() {
           <h2>How long we keep it</h2>
           <p>
             We keep your message only as long as needed to respond and to keep records of any sale, and then
-            delete it.
+            delete it. Artist applications that are not accepted are deleted once they have been answered.
           </p>
         </section>
 

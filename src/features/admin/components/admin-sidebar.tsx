@@ -2,7 +2,16 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ExternalLink, Image as ImageIcon, LayoutDashboard, LogOut, MessageSquare, UserRound } from "lucide-react";
+import {
+  ClipboardCheck,
+  ExternalLink,
+  Image as ImageIcon,
+  LayoutDashboard,
+  LogOut,
+  MessageSquare,
+  UserPlus,
+  UserRound,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { signOut } from "../auth-actions";
 
@@ -13,8 +22,29 @@ const NAV = [
   { href: "/admin/profile", label: "Profile", icon: UserRound },
 ];
 
-export function AdminSidebar({ artistName }: { artistName: string }) {
+interface PlatformCounts {
+  reviews: number;
+  applications: number;
+}
+
+const PLATFORM_NAV = [
+  { href: "/admin/reviews", label: "Reviews", icon: ClipboardCheck, count: "reviews" },
+  { href: "/admin/applications", label: "Applications", icon: UserPlus, count: "applications" },
+] as const;
+
+/** `platformCounts` is null for admins who aren't platform admins; they don't see the platform links. */
+export function AdminSidebar({
+  artistName,
+  platformCounts,
+}: {
+  artistName: string;
+  platformCounts: PlatformCounts | null;
+}) {
   const pathname = usePathname();
+  const nav = [
+    ...NAV.map((item) => ({ ...item, badge: 0 })),
+    ...(platformCounts ? PLATFORM_NAV.map((item) => ({ ...item, badge: platformCounts[item.count] })) : []),
+  ];
   const isActive = (href: string) => (href === "/admin" ? pathname === href : pathname.startsWith(href));
 
   return (
@@ -27,7 +57,7 @@ export function AdminSidebar({ artistName }: { artistName: string }) {
           <p className="text-xs text-muted-foreground">{artistName}</p>
         </div>
         <nav aria-label="Admin" className="flex gap-1 overflow-x-auto md:flex-col">
-          {NAV.map(({ href, label, icon: Icon }) => (
+          {nav.map(({ href, label, icon: Icon, badge }) => (
             <Link
               key={href}
               href={href}
@@ -39,6 +69,9 @@ export function AdminSidebar({ artistName }: { artistName: string }) {
             >
               <Icon className="size-4" aria-hidden />
               {label}
+              {badge > 0 && (
+                <span className="ml-auto rounded-full bg-primary px-2 text-xs text-primary-foreground">{badge}</span>
+              )}
             </Link>
           ))}
         </nav>

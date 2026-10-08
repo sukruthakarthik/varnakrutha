@@ -12,7 +12,7 @@ export function SiteFooter({ artist }: { artist: Artist }) {
           <p className="font-serif text-2xl">
             Art By <span className="text-primary">Sukrutha</span>
           </p>
-          <p className="max-w-xs text-sm text-muted-foreground">{siteConfig.tagline}</p>
+          <p className="max-w-xs text-sm text-muted-foreground">{artist.tagline ?? siteConfig.tagline}</p>
         </div>
         <nav aria-label="Footer">
           <p className="eyebrow mb-4">Explore</p>
@@ -50,6 +50,10 @@ export function SiteFooter({ artist }: { artist: Artist }) {
           © {new Date().getFullYear()} {artist.name}. All artworks are original and protected by copyright.{" "}
           <Link href="/privacy" className="underline-offset-4 hover:text-primary hover:underline">
             Privacy Policy
+          </Link>
+          {" · "}
+          <Link href="/join" className="underline-offset-4 hover:text-primary hover:underline">
+            Artists: get featured
           </Link>
           {" · "}
           <Link href="/admin" className="underline-offset-4 hover:text-primary hover:underline">

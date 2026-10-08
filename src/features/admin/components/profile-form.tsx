@@ -9,21 +9,23 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input, Textarea } from "@/components/ui/input";
-import { updateArtistProfile, uploadProfileImage } from "@/features/artists/actions";
+import type { SaveProfileResult } from "@/features/artists/actions";
 import {
   artistProfileSchema,
   type ArtistProfileFormValues,
   type ArtistProfileInput,
 } from "@/features/artists/schemas";
 import { ArtworkImage } from "@/features/artworks/components/artwork-image";
+import type { ActionResult } from "@/lib/action-result";
+import { TAGLINE_MAX_LENGTH } from "@/lib/constants";
 import { PROFILE_COMPRESSION, compressImage } from "@/lib/image-compression";
-import type { Artist } from "@/types";
 import { formatBytes } from "@/utils/format";
 import { Field } from "./form-field";
 
-function toFormValues(a: Artist): ArtistProfileFormValues {
+function toFormValues(a: ArtistProfileInput): ArtistProfileFormValues {
   return {
     name: a.name,
+    tagline: a.tagline ?? "",
     bio: a.bio ?? "",
     profileImage: a.profileImage,
     instagram: a.instagram ?? "",
@@ -46,7 +48,32 @@ const SOCIAL_FIELDS = [
   { name: "website", label: "Website", placeholder: "https://…" },
 ] as const;
 
-export function ProfileForm({ artist }: { artist: Artist }) {
+interface ProfileFormProps {
+  /** The live profile, or a pending submission to continue from. */
+  profile: ArtistProfileInput;
+  save: (values: ArtistProfileFormValues) => Promise<SaveProfileResult>;
+  upload: (formData: FormData) => Promise<ActionResult<{ url: string }>>;
+  submitLabel: string;
+  /** Shown under the save button, e.g. that changes are reviewed first. */
+  note?: string;
+  /** Lets the form be submitted without edits, e.g. approving a submission as is. */
+  allowUnchanged?: boolean;
+  /** Where to go after saving; stays on the page when omitted. */
+  redirectTo?: string;
+  /** Extra controls under the save button, e.g. discarding a submission. */
+  actions?: React.ReactNode;
+}
+
+export function ProfileForm({
+  profile,
+  save,
+  upload,
+  submitLabel,
+  note,
+  allowUnchanged,
+  redirectTo,
+  actions,
+}: ProfileFormProps) {
   const router = useRouter();
 
   const {
@@ -61,14 +88,15 @@ export function ProfileForm({ artist }: { artist: Artist }) {
     formState: { errors, isSubmitting, isDirty },
   } = useForm<ArtistProfileFormValues, unknown, ArtistProfileInput>({
     resolver: zodResolver(artistProfileSchema),
-    defaultValues: toFormValues(artist),
+    defaultValues: toFormValues(profile),
   });
   const techniques = useFieldArray({ control, name: "techniques" });
-  const profileImage = watch("profileImage");
+  const [profileImage, tagline] = watch(["profileImage", "tagline"]);
+  const taglineLength = tagline?.trim().length ?? 0;
 
   async function onSubmit() {
     const values = getValues();
-    const res = await updateArtistProfile(values);
+    const res = await save(values);
     if (!res.ok) {
       toast.error(res.error);
       for (const [field, messages] of Object.entries(res.fieldErrors ?? {})) {
@@ -76,8 +104,9 @@ export function ProfileForm({ artist }: { artist: Artist }) {
       }
       return;
     }
-    toast.success("Profile saved");
+    toast.success(res.data.message);
     reset(values);
+    if (redirectTo) router.push(redirectTo);
     router.refresh();
   }
 
@@ -94,6 +123,20 @@ export function ProfileForm({ artist }: { artist: Artist }) {
           <CardContent className="space-y-5">
             <Field id="name" label="Name" error={err("name")}>
               <Input id="name" aria-invalid={!!errors.name} {...register("name")} />
+            </Field>
+            <Field
+              id="tagline"
+              label="Tagline"
+              error={err("tagline")}
+              hint={`Shown under your name on the home page. ${taglineLength}/${TAGLINE_MAX_LENGTH} characters.`}
+            >
+              <Input
+                id="tagline"
+                maxLength={TAGLINE_MAX_LENGTH}
+                placeholder="Original paintings inspired by heritage and nature"
+                aria-invalid={!!errors.tagline}
+                {...register("tagline")}
+              />
             </Field>
             <Field id="bio" label="Short bio" error={err("bio")} hint="Two or three sentences introducing you and your work.">
               <Textarea id="bio" rows={4} aria-invalid={!!errors.bio} {...register("bio")} />
@@ -170,8 +213,9 @@ export function ProfileForm({ artist }: { artist: Artist }) {
           </CardHeader>
           <CardContent>
             <ProfilePhoto
-              name={artist.name}
+              name={profile.name}
               url={profileImage}
+              upload={upload}
               onChange={(url) => setValue("profileImage", url, { shouldDirty: true })}
             />
           </CardContent>
@@ -192,14 +236,16 @@ export function ProfileForm({ artist }: { artist: Artist }) {
         </Card>
 
         <div className="flex gap-3 xl:flex-col">
-          <Button type="submit" size="lg" disabled={isSubmitting || !isDirty} className="flex-1">
+          <Button type="submit" size="lg" disabled={isSubmitting || (!isDirty && !allowUnchanged)} className="flex-1">
             {isSubmitting && <Loader2 className="animate-spin" aria-hidden />}
-            Save profile
+            {submitLabel}
           </Button>
           <Button type="button" size="lg" variant="outline" disabled={isSubmitting || !isDirty} onClick={() => reset()} className="flex-1">
-            Discard changes
+            Undo edits
           </Button>
         </div>
+        {note && <p className="text-sm text-muted-foreground">{note}</p>}
+        {actions}
       </div>
     </form>
   );
@@ -208,10 +254,12 @@ export function ProfileForm({ artist }: { artist: Artist }) {
 function ProfilePhoto({
   name,
   url,
+  upload,
   onChange,
 }: {
   name: string;
   url: string | null;
+  upload: ProfileFormProps["upload"];
   onChange: (url: string | null) => void;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -231,13 +279,13 @@ function ProfilePhoto({
       setStatus("Uploading…");
       const fd = new FormData();
       fd.set("file", file);
-      const res = await uploadProfileImage(fd);
+      const res = await upload(fd);
       if (!res.ok) {
         toast.error(res.error);
         return;
       }
       onChange(res.data.url);
-      toast.success(`Photo uploaded · ${formatBytes(original.size)} → ${formatBytes(file.size)}. Save to publish it.`);
+      toast.success(`Photo uploaded · ${formatBytes(original.size)} → ${formatBytes(file.size)}. Save to keep it.`);
     } finally {
       setStatus(null);
       if (inputRef.current) inputRef.current.value = "";

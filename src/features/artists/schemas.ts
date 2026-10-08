@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { TAGLINE_MAX_LENGTH } from "@/lib/constants";
 
 const optionalText = (max: number) =>
   z
@@ -49,6 +50,12 @@ const listOf = (split: (text: string) => string[], maxItems: number, maxItemLeng
 
 export const artistProfileSchema = z.object({
   name: z.string().trim().min(2, "Name is required").max(120),
+  tagline: z
+    .string()
+    .trim()
+    .max(TAGLINE_MAX_LENGTH, `Keep it to ${TAGLINE_MAX_LENGTH} characters or fewer`)
+    .transform((v) => (v === "" ? null : v))
+    .nullable(),
   bio: optionalText(2000),
   profileImage: z.string().trim().max(1000).nullable(),
   instagram: optionalUrl,

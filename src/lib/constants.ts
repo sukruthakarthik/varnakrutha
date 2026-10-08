@@ -55,3 +55,6 @@ export const MAX_IMAGE_BYTES = 4 * 1024 * 1024;
 export const MAX_IMAGE_LABEL = "4 MB";
 
 export const STORAGE_BUCKET = "artworks";
+
+/** The tagline sits beside the home page hero artwork, so it must stay short. */
+export const TAGLINE_MAX_LENGTH = 80;

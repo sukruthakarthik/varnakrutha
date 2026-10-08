@@ -1,8 +1,11 @@
+import type { ApplicationInput } from "@/features/applications/schemas";
 import type { ArtistProfileInput } from "@/features/artists/schemas";
 import type { ArtworkInput } from "@/features/artworks/schemas";
 import type { InquiryInput } from "@/features/inquiries/schemas";
 import type {
+  ApplicationStatus,
   Artist,
+  ArtistApplication,
   Artwork,
   Availability,
   Category,
@@ -22,7 +25,26 @@ export interface ArtworkFilters {
 export interface ArtistRepository {
   list(): Promise<Artist[]>;
   getBySlug(slug: string): Promise<Artist | null>;
+  getById(id: string): Promise<Artist | null>;
   updateProfile(id: string, input: ArtistProfileInput): Promise<Artist>;
+  /** Marks the artist approved, if not already. */
+  approve(id: string): Promise<void>;
+}
+
+export interface ProfileReview {
+  artistId: string;
+  artistName: string;
+  profile: ArtistProfileInput;
+  submittedAt: string;
+}
+
+/** Profile changes submitted by artists, waiting for a platform admin to approve. */
+export interface ProfileReviewRepository {
+  list(): Promise<ProfileReview[]>;
+  get(artistId: string): Promise<ProfileReview | null>;
+  /** Replaces any earlier submission from the same artist. */
+  submit(artistId: string, profile: ArtistProfileInput): Promise<void>;
+  delete(artistId: string): Promise<void>;
 }
 
 export interface ArtworkRepository {
@@ -39,6 +61,18 @@ export interface InquiryRepository {
   create(artistId: string, input: Omit<InquiryInput, "company">): Promise<Inquiry>;
   list(artistId: string): Promise<InquiryWithArtwork[]>;
   setStatus(id: string, status: InquiryStatus): Promise<void>;
+  delete(id: string): Promise<void>;
+}
+
+export interface ApplicationUpdate {
+  status: ApplicationStatus;
+  adminNote: string | null;
+}
+
+export interface ApplicationRepository {
+  create(input: Omit<ApplicationInput, "company">): Promise<void>;
+  list(): Promise<ArtistApplication[]>;
+  update(id: string, update: ApplicationUpdate): Promise<void>;
   delete(id: string): Promise<void>;
 }
 
@@ -63,8 +97,10 @@ export interface StorageService {
 
 export interface DataSource {
   artists: ArtistRepository;
+  profileReviews: ProfileReviewRepository;
   artworks: ArtworkRepository;
   inquiries: InquiryRepository;
+  applications: ApplicationRepository;
   storage: StorageService;
 }
 

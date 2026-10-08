@@ -2,11 +2,12 @@
 -- Image paths are relative and served from the Next.js /public folder until
 -- you upload real images to the Supabase "artworks" bucket via /admin.
 
-insert into public.artists (id, name, slug, bio, profile_image, instagram, youtube, facebook, pinterest, journey, inspiration, skills, techniques, created_at)
+insert into public.artists (id, name, slug, tagline, bio, profile_image, instagram, youtube, facebook, pinterest, journey, inspiration, skills, techniques, approved_at, created_at)
 values (
   '00000000-0000-4000-8000-000000000001',
   'Sukrutha Karthik',
   'sukrutha',
+  'Original Paintings, Heritage Art, Landscapes and Creative Expressions',
   'Sukrutha Karthik is an Indian artist who paints heritage monuments, temple architecture and the landscapes that surround them. Working mainly in watercolor and acrylic, she is drawn to the quiet dialogue between stone, light and time.',
   '/artists/sukrutha/profile.svg',
   'https://www.instagram.com/',
@@ -36,6 +37,7 @@ values (
     {"name": "Acrylic", "description": "Rich, opaque colour built up in textured layers for depth and warmth."},
     {"name": "Graphite & Ink", "description": "Quick on-site studies that capture structure, proportion and mood."}
   ]'::jsonb,
+  '2026-01-01T00:00:00Z',
   '2026-01-01T00:00:00Z'
 )
 on conflict (id) do nothing;

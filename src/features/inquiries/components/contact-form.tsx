@@ -119,7 +119,7 @@ export function ContactForm({ artwork }: ContactFormProps) {
   );
 }
 
-function Field({
+export function Field({
   id,
   label,
   error,

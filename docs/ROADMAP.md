@@ -26,7 +26,7 @@ The data layer is already built for many artists:
 | **Public site** | Hard-wired to one artist through an env var | `/artists/[artist]` routes that resolve the artist from the URL |
 | **Admin** | Works for one fixed artist | Resolves the artist from the logged-in user's membership, with an artist switcher if they manage several |
 | **Sign-up** | None; users are created by hand in Supabase | Self sign-up, email verification, onboarding wizard |
-| **Platform control** | None | Super-admin panel: approve, suspend and feature artists; platform stats |
+| **Platform control** | Platform admins (`platform_admins`) review profile changes at `/admin/reviews` and artist applications at `/admin/applications` | Suspend and feature artists; platform stats |
 | **Discovery** | None | "Artists" directory page; later a platform-wide gallery and search |
 | **Legal** | Privacy Policy at `/privacy` for a single artist (India's DPDP Act, because buyer details are stored) | Terms of Service, content policy, a platform-wide privacy policy that covers multiple artists |
 
@@ -66,6 +66,7 @@ flowchart LR
 2. **Invite-only onboarding**
    - you invite an artist by email; they set a password and complete the onboarding wizard
    - safest start: no spam, and you control quality
+   - **Built:** artists apply at `/join` (links to their work, no uploads); platform admins triage at `/admin/applications`. **Next:** "Accept" should create the artist record and send the invite, which needs the Supabase service role key on the server.
 3. **Super-admin panel**
    - list, approve, suspend and feature artists
    - platform stats

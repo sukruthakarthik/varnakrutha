@@ -2,12 +2,15 @@ import "server-only";
 import { promises as fs } from "fs";
 import path from "path";
 import { seedArtists, seedArtworks } from "@/data/seed";
-import type { Artist, Artwork, Inquiry } from "@/types";
+import type { ArtistProfileInput } from "@/features/artists/schemas";
+import type { Artist, ArtistApplication, Artwork, Inquiry } from "@/types";
 
 export interface MockDb {
   artists: Artist[];
   artworks: Artwork[];
   inquiries: Inquiry[];
+  profileReviews: { artistId: string; profile: ArtistProfileInput; submittedAt: string }[];
+  applications: ArtistApplication[];
 }
 
 const DB_DIR = path.join(process.cwd(), ".data");
@@ -29,15 +32,19 @@ async function load(): Promise<MockDb> {
       const seed = seedArtists.find((s) => s.id === a.id);
       return {
         ...a,
+        tagline: a.tagline === undefined ? (seed?.tagline ?? null) : a.tagline,
         journey: a.journey ?? seed?.journey ?? [],
         inspiration: a.inspiration ?? seed?.inspiration ?? [],
         skills: a.skills ?? seed?.skills ?? [],
         techniques: a.techniques ?? seed?.techniques ?? [],
+        approvedAt: a.approvedAt === undefined ? a.createdAt : a.approvedAt,
       };
     });
+    db.profileReviews ??= [];
+    db.applications ??= [];
     return db;
   } catch {
-    return structuredClone({ artists: seedArtists, artworks: seedArtworks, inquiries: [] });
+    return structuredClone({ artists: seedArtists, artworks: seedArtworks, inquiries: [], profileReviews: [], applications: [] });
   }
 }
 

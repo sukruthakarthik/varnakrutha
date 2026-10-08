@@ -9,6 +9,7 @@ export const seedArtists: Artist[] = [
     id: SEED_ARTIST_ID,
     name: "Sukrutha Karthik",
     slug: "sukrutha",
+    tagline: "Original Paintings, Heritage Art, Landscapes and Creative Expressions",
     bio: "Sukrutha Karthik is an Indian artist who paints heritage monuments, temple architecture and the landscapes that surround them. Working mainly in watercolor and acrylic, she is drawn to the quiet dialogue between stone, light and time.",
     profileImage: "/artists/sukrutha/profile.svg",
     instagram: "https://www.instagram.com/",
@@ -48,6 +49,7 @@ export const seedArtists: Artist[] = [
         description: "Quick on-site studies that capture structure, proportion and mood.",
       },
     ],
+    approvedAt: "2026-01-01T00:00:00.000Z",
     createdAt: "2026-01-01T00:00:00.000Z",
   },
 ];

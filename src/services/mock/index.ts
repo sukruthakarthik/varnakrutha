@@ -59,6 +59,9 @@ export function createMockDataSource(): DataSource {
       async getBySlug(slug) {
         return (await getMockDb()).artists.find((a) => a.slug === slug) ?? null;
       },
+      async getById(id) {
+        return (await getMockDb()).artists.find((a) => a.id === id) ?? null;
+      },
       async updateProfile(id, input) {
         const db = await getMockDb();
         const index = db.artists.findIndex((a) => a.id === id);
@@ -68,6 +71,39 @@ export function createMockDataSource(): DataSource {
         db.artists[index] = updated;
         await persistMockDb(db);
         return updated;
+      },
+      async approve(id) {
+        const db = await getMockDb();
+        const artist = db.artists.find((a) => a.id === id);
+        if (!artist) throw new RepositoryError("Artist not found", "not_found");
+        artist.approvedAt ??= new Date().toISOString();
+        await persistMockDb(db);
+      },
+    },
+
+    profileReviews: {
+      async list() {
+        const db = await getMockDb();
+        return db.profileReviews
+          .map((r) => ({ ...r, artistName: db.artists.find((a) => a.id === r.artistId)?.name ?? "" }))
+          .sort((a, b) => a.submittedAt.localeCompare(b.submittedAt));
+      },
+      async get(artistId) {
+        const db = await getMockDb();
+        const review = db.profileReviews.find((r) => r.artistId === artistId);
+        if (!review) return null;
+        return { ...review, artistName: db.artists.find((a) => a.id === artistId)?.name ?? "" };
+      },
+      async submit(artistId, profile) {
+        const db = await getMockDb();
+        db.profileReviews = db.profileReviews.filter((r) => r.artistId !== artistId);
+        db.profileReviews.push({ artistId, profile, submittedAt: new Date().toISOString() });
+        await persistMockDb(db);
+      },
+      async delete(artistId) {
+        const db = await getMockDb();
+        db.profileReviews = db.profileReviews.filter((r) => r.artistId !== artistId);
+        await persistMockDb(db);
       },
     },
 
@@ -181,6 +217,36 @@ export function createMockDataSource(): DataSource {
       async delete(id) {
         const db = await getMockDb();
         db.inquiries = db.inquiries.filter((i) => i.id !== id);
+        await persistMockDb(db);
+      },
+    },
+
+    applications: {
+      async create(input) {
+        const db = await getMockDb();
+        db.applications.push({
+          ...input,
+          id: crypto.randomUUID(),
+          status: "new",
+          adminNote: null,
+          createdAt: new Date().toISOString(),
+        });
+        await persistMockDb(db);
+      },
+      async list() {
+        return [...(await getMockDb()).applications].sort(byNewest);
+      },
+      async update(id, { status, adminNote }) {
+        const db = await getMockDb();
+        const application = db.applications.find((a) => a.id === id);
+        if (!application) throw new RepositoryError("Application not found", "not_found");
+        application.status = status;
+        application.adminNote = adminNote;
+        await persistMockDb(db);
+      },
+      async delete(id) {
+        const db = await getMockDb();
+        db.applications = db.applications.filter((a) => a.id !== id);
         await persistMockDb(db);
       },
     },

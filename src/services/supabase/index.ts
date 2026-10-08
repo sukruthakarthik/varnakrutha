@@ -1,12 +1,20 @@
 import "server-only";
 import type { PostgrestError, SupabaseClient } from "@supabase/supabase-js";
 import { CATEGORY_META, STORAGE_BUCKET } from "@/lib/constants";
+import type { ApplicationInput } from "@/features/applications/schemas";
 import type { ArtistProfileInput } from "@/features/artists/schemas";
 import type { ArtworkInput } from "@/features/artworks/schemas";
 import { buildImageFileName, validateImageFile } from "@/services/image-validation";
-import { RepositoryError, type ArtworkFilters, type DataSource } from "@/services/types";
+import {
+  RepositoryError,
+  type ArtworkFilters,
+  type DataSource,
+  type ProfileReview,
+} from "@/services/types";
 import type {
+  ApplicationStatus,
   Artist,
+  ArtistApplication,
   ArtistTechnique,
   Artwork,
   Availability,
@@ -19,6 +27,7 @@ interface ArtistRow {
   id: string;
   name: string;
   slug: string;
+  tagline: string | null;
   bio: string | null;
   profile_image: string | null;
   instagram: string | null;
@@ -30,7 +39,15 @@ interface ArtistRow {
   inspiration: string[] | null;
   skills: string[] | null;
   techniques: ArtistTechnique[] | null;
+  approved_at: string | null;
   created_at: string;
+}
+
+interface ProfileReviewRow {
+  artist_id: string;
+  profile: ArtistProfileInput;
+  submitted_at: string;
+  artists: { name: string } | null;
 }
 
 interface ArtworkImageRow {
@@ -74,6 +91,21 @@ interface InquiryRow {
   artworks: { id: string; title: string; slug: string } | null;
 }
 
+interface ApplicationRow {
+  id: string;
+  name: string;
+  email: string;
+  phone: string | null;
+  city: string;
+  portfolio_url: string;
+  sample_links: string[] | null;
+  mediums: string | null;
+  statement: string;
+  status: ApplicationStatus;
+  admin_note: string | null;
+  created_at: string;
+}
+
 const ARTWORK_SELECT = "*, artwork_images(*)";
 
 function fail(error: PostgrestError | null): void {
@@ -88,6 +120,7 @@ const toArtist = (r: ArtistRow): Artist => ({
   id: r.id,
   name: r.name,
   slug: r.slug,
+  tagline: r.tagline,
   bio: r.bio,
   profileImage: r.profile_image,
   instagram: r.instagram,
@@ -99,11 +132,22 @@ const toArtist = (r: ArtistRow): Artist => ({
   inspiration: r.inspiration ?? [],
   skills: r.skills ?? [],
   techniques: r.techniques ?? [],
+  approvedAt: r.approved_at,
   createdAt: r.created_at,
 });
 
+const toProfileReview = (r: ProfileReviewRow): ProfileReview => ({
+  artistId: r.artist_id,
+  artistName: r.artists?.name ?? "",
+  profile: r.profile,
+  submittedAt: r.submitted_at,
+});
+
+const PROFILE_REVIEW_SELECT = "artist_id, profile, submitted_at, artists(name)";
+
 const toArtistProfileRow = (input: ArtistProfileInput) => ({
   name: input.name,
+  tagline: input.tagline,
   bio: input.bio,
   profile_image: input.profileImage,
   instagram: input.instagram,
@@ -141,6 +185,21 @@ const toArtwork = (r: ArtworkRow): Artwork => ({
       displayOrder: i.display_order,
     }))
     .sort((a, b) => a.displayOrder - b.displayOrder),
+  createdAt: r.created_at,
+});
+
+const toApplication = (r: ApplicationRow): ArtistApplication => ({
+  id: r.id,
+  name: r.name,
+  email: r.email,
+  phone: r.phone,
+  city: r.city,
+  portfolioUrl: r.portfolio_url,
+  sampleLinks: r.sample_links ?? [],
+  mediums: r.mediums,
+  statement: r.statement,
+  status: r.status,
+  adminNote: r.admin_note,
   createdAt: r.created_at,
 });
 
@@ -199,6 +258,15 @@ export function createSupabaseDataSource(client: SupabaseClient): DataSource {
         fail(error);
         return data ? toArtist(data) : null;
       },
+      async getById(id) {
+        const { data, error } = await client
+          .from("artists")
+          .select("*")
+          .eq("id", id)
+          .maybeSingle<ArtistRow>();
+        fail(error);
+        return data ? toArtist(data) : null;
+      },
       async updateProfile(id, input) {
         const { data, error } = await client
           .from("artists")
@@ -210,6 +278,49 @@ export function createSupabaseDataSource(client: SupabaseClient): DataSource {
         // RLS filters out rows the user may not update, which surfaces as no row rather than an error.
         if (!data) throw new RepositoryError("Artist not found", "not_found");
         return toArtist(data);
+      },
+      async approve(id) {
+        fail(
+          (
+            await client
+              .from("artists")
+              .update({ approved_at: new Date().toISOString() })
+              .eq("id", id)
+              .is("approved_at", null)
+          ).error,
+        );
+      },
+    },
+
+    profileReviews: {
+      async list() {
+        const { data, error } = await client
+          .from("artist_profile_reviews")
+          .select(PROFILE_REVIEW_SELECT)
+          .order("submitted_at");
+        fail(error);
+        return ((data ?? []) as unknown as ProfileReviewRow[]).map(toProfileReview);
+      },
+      async get(artistId) {
+        const { data, error } = await client
+          .from("artist_profile_reviews")
+          .select(PROFILE_REVIEW_SELECT)
+          .eq("artist_id", artistId)
+          .maybeSingle();
+        fail(error);
+        return data ? toProfileReview(data as unknown as ProfileReviewRow) : null;
+      },
+      async submit(artistId, profile) {
+        fail(
+          (
+            await client
+              .from("artist_profile_reviews")
+              .upsert({ artist_id: artistId, profile, submitted_at: new Date().toISOString() })
+          ).error,
+        );
+      },
+      async delete(artistId) {
+        fail((await client.from("artist_profile_reviews").delete().eq("artist_id", artistId)).error);
       },
     },
 
@@ -323,6 +434,46 @@ export function createSupabaseDataSource(client: SupabaseClient): DataSource {
       },
       async delete(id) {
         fail((await client.from("inquiries").delete().eq("id", id)).error);
+      },
+    },
+
+    applications: {
+      async create(input: Omit<ApplicationInput, "company">) {
+        // Applicants may insert but not read applications, so nothing is selected back.
+        fail(
+          (
+            await client.from("artist_applications").insert({
+              name: input.name,
+              email: input.email,
+              phone: input.phone,
+              city: input.city,
+              portfolio_url: input.portfolioUrl,
+              sample_links: input.sampleLinks,
+              mediums: input.mediums,
+              statement: input.statement,
+            })
+          ).error,
+        );
+      },
+      async list() {
+        const { data, error } = await client
+          .from("artist_applications")
+          .select("*")
+          .order("created_at", { ascending: false });
+        fail(error);
+        return ((data ?? []) as ApplicationRow[]).map(toApplication);
+      },
+      async update(id, { status, adminNote }) {
+        const { data, error } = await client
+          .from("artist_applications")
+          .update({ status, admin_note: adminNote })
+          .eq("id", id)
+          .select("id");
+        fail(error);
+        if (!data?.length) throw new RepositoryError("Application not found", "not_found");
+      },
+      async delete(id) {
+        fail((await client.from("artist_applications").delete().eq("id", id)).error);
       },
     },
 

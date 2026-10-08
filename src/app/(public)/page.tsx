@@ -3,10 +3,10 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { SectionHeading } from "@/components/common/section-heading";
 import { Button } from "@/components/ui/button";
+import { HomeHero } from "@/features/artists/components/home-hero";
 import { ArtworkCard } from "@/features/artworks/components/artwork-card";
 import { ArtworkImage } from "@/features/artworks/components/artwork-image";
 import { CATEGORY_META } from "@/lib/constants";
-import { siteConfig } from "@/lib/site";
 import { getCurrentArtist, getPublicDataSource } from "@/services";
 import { CATEGORIES } from "@/types";
 
@@ -30,42 +30,8 @@ export default async function HomePage() {
 
   return (
     <>
-      {/* 1. Hero: the artwork takes about three quarters of the width on large screens. */}
-      <section className="mx-auto w-full max-w-[100rem] px-5 pb-16 pt-6 md:px-8 md:pb-24 md:pt-10">
-        <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,3fr)] lg:items-end lg:gap-12">
-          <div className="order-2 space-y-6 lg:order-1 lg:pb-2">
-            <p className="eyebrow">Original works by {artist.name}</p>
-            <h1 className="text-4xl leading-[1.05] sm:text-5xl xl:text-6xl">{siteConfig.name}</h1>
-            <p className="max-w-md text-base text-foreground/75 md:text-lg">{artist.tagline ?? siteConfig.tagline}</p>
-            <div className="flex flex-wrap gap-3">
-              <Button asChild size="lg">
-                <Link href="/gallery">View Gallery</Link>
-              </Button>
-              <Button asChild size="lg" variant="outline">
-                <Link href="/contact">Contact Artist</Link>
-              </Button>
-            </div>
-          </div>
-          {hero && (
-            <Link
-              href={`/artworks/${hero.slug}`}
-              className="group relative order-1 block aspect-[4/3] overflow-hidden rounded-sm bg-secondary sm:aspect-[16/10] lg:order-2 lg:aspect-auto lg:h-[min(80vh,52rem)]"
-            >
-              <ArtworkImage
-                src={hero.coverImage}
-                alt={hero.title}
-                sizes="(min-width: 1024px) 72vw, 100vw"
-                priority
-                className="transition-transform duration-700 group-hover:scale-[1.02]"
-              />
-              <span className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-6 text-white md:p-8">
-                <span className="font-serif text-2xl md:text-3xl">{hero.title}</span>
-                <span className="block text-xs uppercase tracking-[0.2em] opacity-85">{hero.medium}</span>
-              </span>
-            </Link>
-          )}
-        </div>
-      </section>
+      {/* 1. Hero */}
+      <HomeHero artist={artist} artwork={hero} />
 
       {/* 2. Featured */}
       {featured.length > 0 && (

@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { TAGLINE_MAX_LENGTH } from "@/lib/constants";
+import { HERO_LAYOUTS } from "@/types";
 
 const optionalText = (max: number) =>
   z
@@ -56,6 +57,7 @@ export const artistProfileSchema = z.object({
     .max(TAGLINE_MAX_LENGTH, `Keep it to ${TAGLINE_MAX_LENGTH} characters or fewer`)
     .transform((v) => (v === "" ? null : v))
     .nullable(),
+  heroLayout: z.enum(HERO_LAYOUTS),
   bio: optionalText(2000),
   profileImage: z.string().trim().max(1000).nullable(),
   instagram: optionalUrl,

@@ -21,11 +21,14 @@ import { TAGLINE_MAX_LENGTH } from "@/lib/constants";
 import { PROFILE_COMPRESSION, compressImage } from "@/lib/image-compression";
 import { formatBytes } from "@/utils/format";
 import { Field } from "./form-field";
+import { HeroLayoutPicker } from "./hero-layout-picker";
 
 function toFormValues(a: ArtistProfileInput): ArtistProfileFormValues {
   return {
     name: a.name,
     tagline: a.tagline ?? "",
+    // Submissions saved before layouts existed have no value.
+    heroLayout: a.heroLayout ?? "wide",
     bio: a.bio ?? "",
     profileImage: a.profileImage,
     instagram: a.instagram ?? "",
@@ -91,7 +94,7 @@ export function ProfileForm({
     defaultValues: toFormValues(profile),
   });
   const techniques = useFieldArray({ control, name: "techniques" });
-  const [profileImage, tagline] = watch(["profileImage", "tagline"]);
+  const [profileImage, tagline, heroLayout] = watch(["profileImage", "tagline", "heroLayout"]);
   const taglineLength = tagline?.trim().length ?? 0;
 
   async function onSubmit() {
@@ -217,6 +220,19 @@ export function ProfileForm({
               url={profileImage}
               upload={upload}
               onChange={(url) => setValue("profileImage", url, { shouldDirty: true })}
+            />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Home page layout</CardTitle>
+            <CardDescription>How your name and featured painting are arranged at the top of the home page.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <HeroLayoutPicker
+              value={heroLayout}
+              onChange={(layout) => setValue("heroLayout", layout, { shouldDirty: true })}
             />
           </CardContent>
         </Card>

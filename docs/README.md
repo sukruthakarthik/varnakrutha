@@ -33,6 +33,8 @@ npm run dev
 
 Open <http://localhost:3000>. The admin is at <http://localhost:3000/admin/login> and uses the password from `ADMIN_PASSWORD`.
 
+For a full testing checklist and troubleshooting, see [LOCAL-TESTING.md](LOCAL-TESTING.md).
+
 In **mock mode**:
 
 - Data comes from `src/data/seed.ts` and is copied to `.data/db.json` on the first write. Admin edits and inquiries are saved there.

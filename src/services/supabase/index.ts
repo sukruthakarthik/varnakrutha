@@ -19,6 +19,7 @@ import type {
   Artwork,
   Availability,
   Category,
+  HeroLayout,
   InquiryStatus,
   InquiryWithArtwork,
 } from "@/types";
@@ -28,6 +29,7 @@ interface ArtistRow {
   name: string;
   slug: string;
   tagline: string | null;
+  hero_layout: HeroLayout | null;
   bio: string | null;
   profile_image: string | null;
   instagram: string | null;
@@ -121,6 +123,7 @@ const toArtist = (r: ArtistRow): Artist => ({
   name: r.name,
   slug: r.slug,
   tagline: r.tagline,
+  heroLayout: r.hero_layout ?? "wide",
   bio: r.bio,
   profileImage: r.profile_image,
   instagram: r.instagram,
@@ -148,6 +151,7 @@ const PROFILE_REVIEW_SELECT = "artist_id, profile, submitted_at, artists(name)";
 const toArtistProfileRow = (input: ArtistProfileInput) => ({
   name: input.name,
   tagline: input.tagline,
+  hero_layout: input.heroLayout,
   bio: input.bio,
   profile_image: input.profileImage,
   instagram: input.instagram,

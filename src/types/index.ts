@@ -34,6 +34,9 @@ export interface ArtistApplication {
   createdAt: string;
 }
 
+export const HERO_LAYOUTS = ["split", "wide", "overlay"] as const;
+export type HeroLayout = (typeof HERO_LAYOUTS)[number];
+
 export interface ArtistTechnique {
   name: string;
   description: string;
@@ -45,6 +48,8 @@ export interface Artist {
   slug: string;
   /** Short line under the name on the home page; falls back to the site tagline when null. */
   tagline: string | null;
+  /** Home page hero arrangement. */
+  heroLayout: HeroLayout;
   bio: string | null;
   profileImage: string | null;
   instagram: string | null;

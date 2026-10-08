@@ -3,6 +3,7 @@ import type { ArtistProfileInput } from "./schemas";
 const FIELD_LABELS: Record<keyof ArtistProfileInput, string> = {
   name: "Name",
   tagline: "Tagline",
+  heroLayout: "Home page layout",
   bio: "Bio",
   profileImage: "Photo",
   instagram: "Instagram",

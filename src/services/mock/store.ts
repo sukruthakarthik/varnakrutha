@@ -33,6 +33,7 @@ async function load(): Promise<MockDb> {
       return {
         ...a,
         tagline: a.tagline === undefined ? (seed?.tagline ?? null) : a.tagline,
+        heroLayout: a.heroLayout ?? "wide",
         journey: a.journey ?? seed?.journey ?? [],
         inspiration: a.inspiration ?? seed?.inspiration ?? [],
         skills: a.skills ?? seed?.skills ?? [],

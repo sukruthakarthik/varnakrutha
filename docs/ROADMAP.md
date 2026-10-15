@@ -1,4 +1,4 @@
-# Roadmap — Art By Sukrutha
+# Roadmap — Varnakrutha
 
 This file covers how the site grows from a single-artist portfolio into a multi-artist platform, and how it makes money. For hosting steps, see [DEPLOYMENT.md](DEPLOYMENT.md).
 
@@ -34,14 +34,14 @@ The data layer is already built for many artists:
 
 ```mermaid
 flowchart LR
-  A["artbysukrutha.com/"] --> P["Platform home / featured artists"]
+  A["varnakrutha.in/"] --> P["Platform home / featured artists"]
   B["/artists/sukrutha"] --> S["Sukrutha's gallery, about, contact"]
   C["/artists/naveen"] --> N["Naveen's gallery, about, contact"]
-  D["naveen.artbysukrutha.com (later)"] -. "middleware rewrite" .-> C
+  D["naveen.varnakrutha.in (later)"] -. "middleware rewrite" .-> C
 ```
 
 - **Start with paths** (`/artists/naveen`).
-- **Add subdomains later** using the same code: middleware reads the host and rewrites to `/artists/<slug>`. On Vercel this needs a wildcard domain, `*.artbysukrutha.com`.
+- **Add subdomains later** using the same code: middleware reads the host and rewrites to `/artists/<slug>`. On Vercel this needs a wildcard domain, `*.varnakrutha.in`.
 - **Custom domains per artist** (e.g. `naveenart.com`) can be added the same way.
 - Sukrutha's current URLs (`/gallery`, `/artworks/...`) keep working as aliases.
 
@@ -83,7 +83,7 @@ flowchart LR
 
 | Decision | Options | Recommended |
 |---|---|---|
-| Branding | Keep **"Art By Sukrutha"** as the platform name, or use a **neutral platform name** with Sukrutha as the first featured artist | A neutral name, if the goal is many artists |
+| Branding | **Decided:** the platform is **Varnakrutha** (varnakrutha.in); each artist's pages read "Art by <name>" | — |
 | Sign-up | Invite-only with approval, or open to anyone | Invite-only first |
 | URLs | `/artists/naveen` first, or subdomains from the start | Paths first |
 | Root page (`/`) | Sukrutha stays at the root, or a platform page listing artists | Sukrutha at the root until several artists have joined |

@@ -6,7 +6,7 @@ import { notFound } from "next/navigation";
 import { SocialLinks } from "@/components/common/social-links";
 import { Button } from "@/components/ui/button";
 import { GalleryExplorer } from "@/features/artworks/components/gallery-explorer";
-import { artistPath, defaultOpenGraph, siteConfig } from "@/lib/site";
+import { artistBrand, artistFirstName, artistPath, defaultOpenGraph, siteConfig } from "@/lib/site";
 import { getPublicDataSource, getPublishedArtist } from "@/services";
 import { truncate } from "@/utils/format";
 import GalleryLoading from "../../gallery/loading";
@@ -26,14 +26,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const description = truncate(artist.bio ?? `Original artworks by ${artist.name}.`, 160);
   const url = artistPath(artist.slug);
   return {
-    title: artist.name,
+    title: `${artistBrand(artist.name)} — ${artist.name}`,
     description,
     alternates: { canonical: url },
     openGraph: {
       ...defaultOpenGraph,
       type: "profile",
       url,
-      title: `${artist.name} | ${siteConfig.name}`,
+      title: `${artistBrand(artist.name)} | ${siteConfig.name}`,
       description,
       ...(artist.profileImage ? { images: [{ url: artist.profileImage, alt: artist.name }] } : {}),
     },
@@ -62,8 +62,10 @@ export default async function ArtistPage({ params }: Props) {
           )}
         </div>
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-3 fill-mode-both delay-150 duration-1000">
-          <p className="eyebrow">Artist</p>
-          <h1 className="text-balance text-5xl leading-[1.02] tracking-[-0.015em] md:text-7xl">{artist.name}</h1>
+          <p className="eyebrow">{artist.name}</p>
+          <h1 className="text-balance text-5xl leading-[1.02] tracking-[-0.015em] md:text-7xl">
+            Art by <span className="italic text-primary">{artistFirstName(artist.name)}</span>
+          </h1>
           {artist.tagline && <p className="text-lg text-foreground/70">{artist.tagline}</p>}
           {artist.bio && (
             <p className="max-w-2xl text-pretty font-serif text-xl leading-relaxed text-foreground/85">{artist.bio}</p>

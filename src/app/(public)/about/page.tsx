@@ -4,7 +4,7 @@ import Link from "next/link";
 import { SectionHeading } from "@/components/common/section-heading";
 import { SocialLinks } from "@/components/common/social-links";
 import { Button } from "@/components/ui/button";
-import { defaultOpenGraph } from "@/lib/site";
+import { defaultOpenGraph, siteConfig } from "@/lib/site";
 import { getCurrentArtist } from "@/services";
 
 export const revalidate = 3600;
@@ -14,7 +14,7 @@ export const metadata: Metadata = {
   description:
     "Meet Sukrutha Karthik — her artistic journey, inspiration, skills and the techniques behind her heritage paintings and landscapes.",
   alternates: { canonical: "/about" },
-  openGraph: { ...defaultOpenGraph, url: "/about", title: "About the Artist | Art By Sukrutha" },
+  openGraph: { ...defaultOpenGraph, url: "/about", title: `About the Artist | ${siteConfig.name}` },
 };
 
 export default async function AboutPage() {

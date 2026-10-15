@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   title: "Contact",
   description: "Enquire about original artworks, commissions or exhibitions with artist Sukrutha Karthik.",
   alternates: { canonical: "/contact" },
-  openGraph: { ...defaultOpenGraph, url: "/contact", title: "Contact | Art By Sukrutha" },
+  openGraph: { ...defaultOpenGraph, url: "/contact", title: `Contact | ${siteConfig.name}` },
 };
 
 type Props = { searchParams: Promise<{ artwork?: string | string[]; artist?: string | string[] }> };

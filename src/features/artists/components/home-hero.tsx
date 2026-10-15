@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ArtworkImage } from "@/features/artworks/components/artwork-image";
-import { siteConfig } from "@/lib/site";
+import { artistFirstName, siteConfig } from "@/lib/site";
 import { cn } from "@/lib/utils";
 import type { Artist, Artwork } from "@/types";
 
@@ -25,14 +25,13 @@ export function HomeHero({ artist, artwork }: HomeHeroProps) {
 }
 
 function HeroText({ artist, size, centered }: { artist: Artist; size: "large" | "compact"; centered?: boolean }) {
-  // Split the wordmark so its last word can be set in italic accent, e.g. "Art By *Sukrutha*".
-  const words = siteConfig.name.split(" ");
-  const lead = words.slice(0, -1).join(" ");
-  const last = words[words.length - 1];
+  // The home page is this artist's portfolio, so it carries their brand: "Art by *Sukrutha*".
+  const lead = "Art by";
+  const last = artistFirstName(artist.name);
   return (
     <div className={cn("space-y-7", centered && "text-center")}>
       <p className="eyebrow animate-in fade-in slide-in-from-bottom-2 fill-mode-both duration-700">
-        Original works by {artist.name}
+        Original paintings · {siteConfig.name}
       </p>
       <h1
         className={cn(

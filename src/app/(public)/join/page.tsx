@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
 import { SectionHeading } from "@/components/common/section-heading";
 import { JoinForm } from "@/features/applications/components/join-form";
-import { defaultOpenGraph } from "@/lib/site";
+import { defaultOpenGraph, siteConfig } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Apply as an Artist",
-  description: "Artists can apply to have their paintings featured on Art By Sukrutha.",
+  description: "Artists can apply to have their paintings featured on Varnakrutha.",
   alternates: { canonical: "/join" },
-  openGraph: { ...defaultOpenGraph, url: "/join", title: "Apply as an Artist | Art By Sukrutha" },
+  openGraph: { ...defaultOpenGraph, url: "/join", title: `Apply as an Artist | ${siteConfig.name}` },
 };
 
 const STEPS = [
@@ -24,7 +24,7 @@ export default function JoinPage() {
           as="h1"
           eyebrow="For artists"
           title="Have your paintings featured"
-          description="Art By Sukrutha is opening up to a small number of artists whose work celebrates heritage, nature and everyday life."
+          description="Varnakrutha is opening up to a small number of artists whose work celebrates heritage, nature and everyday life."
         />
         <ol className="space-y-6">
           {STEPS.map((step, i) => (

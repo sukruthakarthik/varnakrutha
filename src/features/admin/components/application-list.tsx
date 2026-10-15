@@ -22,17 +22,17 @@ const STATUS_META: Record<ApplicationStatus, { label: string; variant: BadgeProp
   declined: { label: "Declined", variant: "muted" },
 };
 
-const EMAIL_SUBJECT = "Your application to Art By Sukrutha";
+const EMAIL_SUBJECT = `Your application to ${siteConfig.name}`;
 
 /** A starting point for the reply; the admin edits it in their mail app before sending. */
 function replyBody(a: ArtistApplication): string {
   switch (a.status) {
     case "accepted":
-      return `Hi ${a.name},\n\nThank you for applying to be featured on Art By Sukrutha. I loved your work and would be happy to feature you.\n\nI've created your artist account. You'll receive a separate email with a link to set your password. Then sign in at ${siteConfig.url}/admin, add your artworks and complete your profile. Your page goes live once I've reviewed it.\n\nWarm regards,\nSukrutha`;
+      return `Hi ${a.name},\n\nThank you for applying to be featured on ${siteConfig.name}. I loved your work and would be happy to feature you.\n\nI've created your artist account. You'll receive a separate email with a link to set your password. Then sign in at ${siteConfig.url}/admin, add your artworks and complete your profile. Your page goes live once I've reviewed it.\n\nWarm regards,\nSukrutha\n${siteConfig.name}`;
     case "declined":
-      return `Hi ${a.name},\n\nThank you for applying to be featured on Art By Sukrutha and for sharing your work with me.\n\nI'm not able to feature it at the moment, but I wish you all the best and hope you keep painting.\n\nWarm regards,\nSukrutha`;
+      return `Hi ${a.name},\n\nThank you for applying to be featured on ${siteConfig.name} and for sharing your work with me.\n\nI'm not able to feature it at the moment, but I wish you all the best and hope you keep painting.\n\nWarm regards,\nSukrutha\n${siteConfig.name}`;
     default:
-      return `Hi ${a.name},\n\nThank you for applying to be featured on Art By Sukrutha.\n\n`;
+      return `Hi ${a.name},\n\nThank you for applying to be featured on ${siteConfig.name}.\n\n`;
   }
 }
 

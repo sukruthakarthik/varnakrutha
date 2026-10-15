@@ -1,4 +1,4 @@
-# Deployment Guide — Art By Sukrutha
+# Deployment Guide — Varnakrutha
 
 Hosting stack: **Supabase** (database, image storage, admin login) + **Vercel** (website hosting).
 
@@ -75,13 +75,23 @@ Go to **Project Settings → API Keys** and copy:
 ### 1.7 Artist account emails
 Accepting an application at `/admin/applications` creates the artist and emails them an invitation to choose a password. Artists who forget their password use **Forgot your password?** on the sign-in page. Both emails must link back to the site:
 
-1. **Authentication → URL Configuration**: set **Site URL** to your live address (e.g. `https://artbysukrutha.vercel.app`), and add `https://artbysukrutha.vercel.app/**` under **Redirect URLs**.
+1. **Authentication → URL Configuration**: set **Site URL** to your live address (`https://varnakrutha.in`), and add `https://varnakrutha.in/**` under **Redirect URLs**.
 2. **Authentication → Emails → Invite user**: replace the link in the template with
    `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=invite&next=/admin/set-password`
 3. **Authentication → Emails → Reset password**: replace the link with
    `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=recovery&next=/admin/set-password`
 
-Supabase's built-in email service only sends a few emails per hour. Before inviting many artists, add your own SMTP provider under **Authentication → Emails → SMTP Settings**.
+4. **Send through your own email account.** Supabase's built-in email service is only for testing: it sends about two emails an hour and only to members of your Supabase team, so applicants never receive it. Under **Authentication → Emails → SMTP Settings**, turn on **custom SMTP**:
+
+   | Field | Value |
+   | --- | --- |
+   | Sender email | `varnakrutha@gmail.com` |
+   | Sender name | `Sukrutha from Varnakrutha` |
+   | Host / Port | `smtp.gmail.com` / `465` |
+   | Username | `varnakrutha@gmail.com` |
+   | Password | A Google **App Password**, not the Gmail password or a passkey. Turn on 2-Step Verification with a phone or Google prompt, then create one at [myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords). Google shows the 16 characters only once. |
+
+   Gmail allows about 500 emails a day. Only accepting an artist and password resets send email; applications don't.
 
 **Roles.** Admins are users listed in `platform_admins`. They review profiles, accept applications and read every inquiry. Artists are users linked to one artist in `artist_admins`. They manage only their own artworks and submit their profile for review. Guests don't sign in; they see approved artists' work only. Your own account from step 1.5 is already an admin, through the `20261008030000_profile_review.sql` migration.
 
@@ -127,7 +137,7 @@ npx vercel env add SUPABASE_SERVICE_ROLE_KEY production
 | `NEXT_PUBLIC_SUPABASE_URL` | Project URL from step 1.6 |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | anon or publishable key from step 1.6 |
 | `NEXT_PUBLIC_DEFAULT_ARTIST_SLUG` | `sukrutha` |
-| `NEXT_PUBLIC_SITE_URL` | `https://artbysukrutha.vercel.app` (or your custom domain) |
+| `NEXT_PUBLIC_SITE_URL` | `https://varnakrutha.in` |
 | `NEXT_PUBLIC_CONTACT_EMAIL` | An address you actually read, e.g. your Gmail. Optional: leave it out to hide the email link. |
 | `NEXT_PUBLIC_WHATSAPP_NUMBER` | Your WhatsApp number with country code, digits only, e.g. `919876543210`. Optional: leave it out to hide the WhatsApp link. |
 | `SUPABASE_SERVICE_ROLE_KEY` | `service_role` / secret key from step 1.6. Server only; needed to accept artist applications. |
@@ -187,12 +197,12 @@ You do **not** need to redeploy for content changes (artworks, images, availabil
 
 ## 5. Custom domain (optional)
 
-1. Buy the domain (e.g. `artbysukrutha.com`) from any registrar.
+1. Buy the domain (this site uses `varnakrutha.in`) from any registrar.
 2. In Vercel, go to **Project → Settings → Domains → Add** and follow the DNS instructions.
 3. Update the site URL and redeploy:
    ```bash
    npx vercel env rm NEXT_PUBLIC_SITE_URL production
-   npx vercel env add NEXT_PUBLIC_SITE_URL production   # https://artbysukrutha.com
+   npx vercel env add NEXT_PUBLIC_SITE_URL production   # https://varnakrutha.in
    npx vercel --prod
    ```
 
@@ -261,7 +271,7 @@ Most visitors will arrive from Instagram on a phone, inside Instagram's in-app b
 ### Before you put the link in your bio
 - [ ] Delete or replace the **sample artworks** from `seed.sql`. They have made-up prices and placeholder SVG images.
 - [ ] Replace the placeholder social links (`https://www.instagram.com/` etc.) in the `artists` row with your real profile URLs.
-- [ ] Set `NEXT_PUBLIC_CONTACT_EMAIL` and `NEXT_PUBLIC_WHATSAPP_NUMBER` (step 2.2). Use an email you actually receive; a domain address such as `hello@artbysukrutha.com` only works once you own the domain and have set up mail for it.
+- [ ] Set `NEXT_PUBLIC_CONTACT_EMAIL` and `NEXT_PUBLIC_WHATSAPP_NUMBER` (step 2.2). Use an email you actually receive; a domain address such as `hello@varnakrutha.in` only works once you own the domain and have set up mail for it.
 - [ ] Upload your profile photo and fill in the About text at **/admin/profile**.
 - [ ] Turn off public sign-ups in Supabase (step 1.4).
 - [ ] Read the Privacy Policy (`src/app/(public)/privacy/page.tsx`) and adjust it if anything doesn't match how you handle enquiries.

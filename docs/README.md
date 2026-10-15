@@ -1,6 +1,6 @@
-# Art By Sukrutha
+# Varnakrutha
 
-An online art gallery and artist portfolio for **Sukrutha Karthik**. The architecture supports multiple artists in the future.
+An online art gallery at [varnakrutha.in](https://varnakrutha.in): the portfolio of **Sukrutha Karthik** (the home page, "Art by Sukrutha") and of featured artists, each with their own "Art by <name>" page.
 
 **Stack:** Next.js 15 (App Router) · TypeScript (strict) · Tailwind CSS v4 · ShadCN UI · TanStack Query · React Hook Form + Zod · Supabase (Postgres, Storage, Auth) · Vercel
 
@@ -49,7 +49,7 @@ In **mock mode**:
 
 | Variable | Required | Description |
 | --- | --- | --- |
-| `NEXT_PUBLIC_SITE_URL` | yes | Public base URL, e.g. `https://artbysukrutha.com`. Used for canonical URLs, the sitemap and Open Graph |
+| `NEXT_PUBLIC_SITE_URL` | yes | Public base URL, e.g. `https://varnakrutha.in`. Used for canonical URLs, the sitemap and Open Graph |
 | `NEXT_PUBLIC_DEFAULT_ARTIST_SLUG` | yes | Artist shown at the site root (`sukrutha`) |
 | `NEXT_PUBLIC_DATA_SOURCE` | yes | `mock` or `supabase` |
 | `NEXT_PUBLIC_CONTACT_EMAIL` | no | Email shown on the Contact page and footer. Hidden when empty |

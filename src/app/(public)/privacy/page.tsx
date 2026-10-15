@@ -35,8 +35,8 @@ export default async function PrivacyPage() {
         <section>
           <h2>Who we are</h2>
           <p>
-            This website is the online gallery of {artist.name} (&ldquo;we&rdquo;, &ldquo;us&rdquo;). We are
-            responsible for the personal data you share here.
+            {siteConfig.name} is an online gallery of original paintings, run by {artist.name} (&ldquo;we&rdquo;,
+            &ldquo;us&rdquo;). We are responsible for the personal data you share here.
           </p>
         </section>
 

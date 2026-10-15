@@ -3,16 +3,16 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { SectionHeading } from "@/components/common/section-heading";
 import { ArtworkImage } from "@/features/artworks/components/artwork-image";
-import { artistPath, defaultOpenGraph } from "@/lib/site";
+import { artistBrand, artistPath, defaultOpenGraph, siteConfig } from "@/lib/site";
 import { getPublishedArtists, getPublishedArtworks } from "@/services";
 
 export const revalidate = 3600;
 
 export const metadata: Metadata = {
   title: "Artists",
-  description: "Meet the artists featured on Art By Sukrutha and browse their original paintings.",
+  description: "Meet the artists featured on Varnakrutha and browse their original paintings.",
   alternates: { canonical: "/artists" },
-  openGraph: { ...defaultOpenGraph, url: "/artists", title: "Artists | Art By Sukrutha" },
+  openGraph: { ...defaultOpenGraph, url: "/artists", title: `Artists | ${siteConfig.name}` },
 };
 
 export default async function ArtistsPage() {
@@ -49,6 +49,7 @@ export default async function ArtistsPage() {
                 <div className="mt-6 flex items-end justify-between gap-4">
                   <div className="min-w-0">
                     <h2 className="font-serif text-3xl transition-colors group-hover:text-primary">{artist.name}</h2>
+                    <p className="mt-1 font-serif text-base italic text-foreground/70">{artistBrand(artist.name)}</p>
                     {artist.tagline && <p className="mt-1 text-sm text-muted-foreground">{artist.tagline}</p>}
                     <p className="mt-2 text-[0.7rem] uppercase tracking-[0.18em] text-muted-foreground">
                       {works.length} {works.length === 1 ? "work" : "works"}

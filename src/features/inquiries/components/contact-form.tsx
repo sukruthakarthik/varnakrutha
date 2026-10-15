@@ -63,8 +63,7 @@ export function ContactForm({ artwork, artist }: ContactFormProps) {
         <CheckCircle2 className="size-8 text-primary" aria-hidden />
         <h2 className="font-serif text-3xl">Thank you for reaching out</h2>
         <p className="text-foreground/80">
-          Your message has been received. We&apos;ll get back to you personally, usually within two working
-          days.
+          Your message has been received. We&apos;ll get back to you personally, usually within 1 working day.
         </p>
         <Button variant="outline" onClick={() => setSent(false)}>
           Send another message

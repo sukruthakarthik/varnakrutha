@@ -9,8 +9,8 @@ export function SiteFooter({ artist }: { artist: Artist }) {
     <footer className="mt-24 border-t border-border bg-secondary/40">
       <div className="container-page grid gap-10 py-14 md:grid-cols-3">
         <div className="space-y-3">
-          <p className="font-serif text-2xl">
-            Art By <span className="text-primary">Sukrutha</span>
+          <p className="font-serif text-3xl">
+            Art By <span className="italic text-primary">Sukrutha</span>
           </p>
           <p className="max-w-xs text-sm text-muted-foreground">{artist.tagline ?? siteConfig.tagline}</p>
         </div>
@@ -45,6 +45,12 @@ export function SiteFooter({ artist }: { artist: Artist }) {
           )}
         </div>
       </div>
+      <p
+        aria-hidden
+        className="container-page select-none overflow-hidden whitespace-nowrap pb-2 font-serif text-[13vw] leading-[0.85] tracking-[-0.03em] text-foreground/[0.07] lg:text-[10.5rem]"
+      >
+        Art By <span className="italic">Sukrutha</span>
+      </p>
       <div className="border-t border-border">
         <p className="container-page py-6 text-xs text-muted-foreground">
           © {new Date().getFullYear()} {artist.name}. All artworks are original and protected by copyright.{" "}

@@ -37,6 +37,12 @@ export function GalleryExplorer({ artworks }: { artworks: Artwork[] }) {
     router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
   }
 
+  const counts = useMemo(() => {
+    const byCategory: Partial<Record<Category, number>> = {};
+    for (const a of artworks) byCategory[a.category] = (byCategory[a.category] ?? 0) + 1;
+    return byCategory;
+  }, [artworks]);
+
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     return artworks.filter((a) => {
@@ -52,13 +58,13 @@ export function GalleryExplorer({ artworks }: { artworks: Artwork[] }) {
 
   return (
     <div className="space-y-10">
-      <div className="flex flex-col gap-6 border-y border-border py-6 lg:flex-row lg:items-center lg:justify-between">
-        <div role="group" aria-label="Filter by category" className="flex flex-wrap gap-2">
-          <FilterChip active={!category} onClick={() => update({ category: null })}>
-            All
+      <div className="flex flex-col gap-6 border-y border-foreground/10 py-6 lg:flex-row lg:items-center lg:justify-between">
+        <div role="group" aria-label="Filter by category" className="flex flex-wrap gap-x-7 gap-y-3">
+          <FilterChip active={!category} count={artworks.length} onClick={() => update({ category: null })}>
+            All works
           </FilterChip>
-          {CATEGORIES.map((c) => (
-            <FilterChip key={c} active={category === c} onClick={() => update({ category: c })}>
+          {CATEGORIES.filter((c) => counts[c]).map((c) => (
+            <FilterChip key={c} active={category === c} count={counts[c]} onClick={() => update({ category: c })}>
               {CATEGORY_META[c].label}
             </FilterChip>
           ))}
@@ -76,10 +82,10 @@ export function GalleryExplorer({ artworks }: { artworks: Artwork[] }) {
               placeholder="Search title or category"
               defaultValue={query}
               onChange={(e) => update({ q: e.target.value || null })}
-              className="pl-9"
+              className="rounded-full border-foreground/15 bg-transparent pl-9"
             />
           </div>
-          <div role="group" aria-label="View mode" className="flex shrink-0 rounded-sm border border-input">
+          <div role="group" aria-label="View mode" className="flex shrink-0 overflow-hidden rounded-full border border-foreground/15">
             <Button
               variant="ghost"
               size="icon"
@@ -122,13 +128,13 @@ export function GalleryExplorer({ artworks }: { artworks: Artwork[] }) {
           }
         />
       ) : view === "grid" ? (
-        <div className="grid gap-x-8 gap-y-14 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-x-8 gap-y-16 sm:grid-cols-2 lg:grid-cols-3">
           {filtered.map((a, i) => (
             <ArtworkCard key={a.id} artwork={a} priority={i < 3} />
           ))}
         </div>
       ) : (
-        <div className="columns-1 gap-8 sm:columns-2 lg:columns-3">
+        <div className="columns-1 gap-8 sm:columns-2 lg:columns-3 [&>article]:break-inside-avoid">
           {filtered.map((a, i) => (
             <ArtworkCard key={a.id} artwork={a} layout="masonry" priority={i < 3} />
           ))}
@@ -140,10 +146,12 @@ export function GalleryExplorer({ artworks }: { artworks: Artwork[] }) {
 
 function FilterChip({
   active,
+  count,
   onClick,
   children,
 }: {
   active: boolean;
+  count?: number;
   onClick: () => void;
   children: React.ReactNode;
 }) {
@@ -153,13 +161,12 @@ function FilterChip({
       onClick={onClick}
       aria-pressed={active}
       className={cn(
-        "rounded-full border px-4 py-1.5 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-        active
-          ? "border-foreground bg-foreground text-background"
-          : "border-foreground/15 text-foreground/80 hover:border-foreground/50",
+        "link-draw inline-flex items-baseline gap-1.5 font-serif text-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-4",
+        active ? "text-foreground" : "text-foreground/55 hover:text-foreground",
       )}
     >
       {children}
+      {count !== undefined && <sup className="font-sans text-[0.65rem] tabular-nums text-muted-foreground">{count}</sup>}
     </button>
   );
 }

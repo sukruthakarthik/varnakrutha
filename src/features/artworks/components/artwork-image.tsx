@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import Image from "next/image";
 import { ImageIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -9,10 +12,13 @@ interface ArtworkImageProps {
   priority?: boolean;
   className?: string;
   fit?: "cover" | "contain";
+  quality?: number;
 }
 
-/** Fills its (relatively positioned) parent; falls back to a neutral placeholder. */
-export function ArtworkImage({ src, alt, sizes, priority, className, fit = "cover" }: ArtworkImageProps) {
+/** Fills its (relatively positioned) parent and fades in once loaded; falls back to a neutral placeholder. */
+export function ArtworkImage({ src, alt, sizes, priority, className, fit = "cover", quality }: ArtworkImageProps) {
+  const [loaded, setLoaded] = useState(false);
+
   if (!src) {
     return (
       <div className={cn("absolute inset-0 flex items-center justify-center bg-secondary", className)}>
@@ -28,7 +34,16 @@ export function ArtworkImage({ src, alt, sizes, priority, className, fit = "cove
       fill
       sizes={sizes}
       priority={priority}
-      className={cn(fit === "cover" ? "object-cover" : "object-contain", className)}
+      quality={quality}
+      draggable={false}
+      onLoad={() => setLoaded(true)}
+      // `img-fade` lets the root layout's <noscript> style show images when JS is off.
+      className={cn(
+        "img-fade transition-[opacity,filter,scale] duration-700 ease-out",
+        fit === "cover" ? "object-cover" : "object-contain",
+        !loaded && "opacity-0 blur-sm",
+        className,
+      )}
     />
   );
 }

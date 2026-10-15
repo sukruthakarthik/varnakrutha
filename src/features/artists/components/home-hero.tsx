@@ -25,26 +25,46 @@ export function HomeHero({ artist, artwork }: HomeHeroProps) {
 }
 
 function HeroText({ artist, size, centered }: { artist: Artist; size: "large" | "compact"; centered?: boolean }) {
+  // Split the wordmark so its last word can be set in italic accent, e.g. "Art By *Sukrutha*".
+  const words = siteConfig.name.split(" ");
+  const lead = words.slice(0, -1).join(" ");
+  const last = words[words.length - 1];
   return (
-    <div className={cn("space-y-6", centered && "text-center")}>
-      <p className="eyebrow">Original works by {artist.name}</p>
+    <div className={cn("space-y-7", centered && "text-center")}>
+      <p className="eyebrow animate-in fade-in slide-in-from-bottom-2 fill-mode-both duration-700">
+        Original works by {artist.name}
+      </p>
       <h1
         className={cn(
-          "leading-[1.05]",
-          size === "large" ? "text-5xl sm:text-6xl lg:text-7xl" : "text-4xl sm:text-5xl",
+          "text-balance leading-[0.95] tracking-[-0.02em] animate-in fade-in slide-in-from-bottom-4 fill-mode-both delay-100 duration-1000",
+          size === "large" ? "text-6xl sm:text-7xl lg:text-[6.5rem]" : "text-5xl sm:text-6xl lg:text-7xl",
         )}
       >
-        {siteConfig.name}
+        {lead && <span className="block">{lead}</span>}
+        <span className="italic text-primary">{last}</span>
       </h1>
-      <p className={cn("text-foreground/75", size === "large" ? "max-w-xl text-lg md:text-xl" : "text-base md:text-lg", centered && "mx-auto")}>
+      <p
+        className={cn(
+          "text-pretty text-foreground/70 animate-in fade-in slide-in-from-bottom-4 fill-mode-both delay-200 duration-1000",
+          size === "large" ? "max-w-lg text-lg md:text-xl" : "max-w-md text-base md:text-lg",
+          centered && "mx-auto",
+        )}
+      >
         {artist.tagline ?? siteConfig.tagline}
       </p>
-      <div className={cn("flex flex-wrap gap-3 pt-2 lg:flex-nowrap", centered && "justify-center")}>
-        <Button asChild size={size === "large" ? "lg" : "default"}>
-          <Link href="/gallery">View Gallery</Link>
+      <div
+        className={cn(
+          "flex flex-wrap gap-3 pt-2 animate-in fade-in fill-mode-both delay-300 duration-1000 lg:flex-nowrap",
+          centered && "justify-center",
+        )}
+      >
+        <Button asChild size={size === "large" ? "lg" : "default"} className="group">
+          <Link href="/gallery">
+            View Gallery <ArrowRight className="transition-transform group-hover:translate-x-1" aria-hidden />
+          </Link>
         </Button>
         <Button asChild size={size === "large" ? "lg" : "default"} variant="outline">
-          <Link href="/contact">Contact Artist</Link>
+          <Link href="/contact">Commission a piece</Link>
         </Button>
       </div>
     </div>
@@ -60,11 +80,14 @@ function ArtworkPanel({ artwork, sizes, className }: { artwork: Artwork; sizes: 
         alt={artwork.title}
         sizes={sizes}
         priority
-        className="transition-transform duration-700 group-hover:scale-[1.02]"
+        className="animate-settle group-hover:scale-[1.02]"
       />
-      <span className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-6 text-white md:p-8">
-        <span className="font-serif text-2xl md:text-3xl">{artwork.title}</span>
-        <span className="block text-xs uppercase tracking-[0.2em] opacity-85">{artwork.medium}</span>
+      <span className="absolute bottom-0 left-0 right-0 flex items-end justify-between gap-4 bg-gradient-to-t from-black/60 to-transparent p-6 pt-20 text-white md:p-8 md:pt-24">
+        <span>
+          <span className="font-serif text-2xl italic md:text-3xl">{artwork.title}</span>
+          <span className="mt-1 block text-[0.7rem] uppercase tracking-[0.2em] opacity-85">{artwork.medium}</span>
+        </span>
+        <ArrowRight className="size-5 shrink-0 -translate-x-2 opacity-0 transition-all duration-500 group-hover:translate-x-0 group-hover:opacity-100" aria-hidden />
       </span>
     </Link>
   );

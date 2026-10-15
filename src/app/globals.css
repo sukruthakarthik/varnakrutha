@@ -1,23 +1,47 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+/* "Gallery at night": opted into from the header toggle, stored per visitor. */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
 :root {
-  --background: #ffffff;
-  --foreground: #222222;
-  --card: #ffffff;
-  --card-foreground: #222222;
+  /* Warm "gallery wall" ivory rather than screen white: paintings read truer against it. */
+  --background: #faf7f2;
+  --foreground: #1d1a17;
+  --card: #fffdf9;
+  --card-foreground: #1d1a17;
   --primary: #9c4a2f;
   --primary-foreground: #ffffff;
-  --secondary: #f3eadf;
+  --secondary: #f1e8dc;
   --secondary-foreground: #3b2a20;
-  --muted: #f8f4ef;
-  --muted-foreground: #5f5a55;
-  --accent: #f3eadf;
+  --muted: #f3eee6;
+  --muted-foreground: #5f5850;
+  --accent: #f1e8dc;
   --accent-foreground: #3b2a20;
   --destructive: #b42318;
-  --border: #e7dfd6;
+  --border: #e5dccf;
   --input: #d6cbbf;
   --ring: #9c4a2f;
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+  --background: #12100e;
+  --foreground: #ece6dd;
+  --card: #1a1714;
+  --card-foreground: #ece6dd;
+  --primary: #d98a65;
+  --primary-foreground: #1a1210;
+  --secondary: #26211c;
+  --secondary-foreground: #e9dccb;
+  --muted: #1c1916;
+  --muted-foreground: #a69c90;
+  --accent: #26211c;
+  --accent-foreground: #e9dccb;
+  --destructive: #f0715f;
+  --border: #322b25;
+  --input: #3d352e;
+  --ring: #d98a65;
 }
 
 @theme inline {
@@ -50,6 +74,7 @@
   }
   body {
     background: var(--color-background);
+    transition: background-color 0.5s ease, color 0.5s ease;
     color: var(--color-foreground);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
@@ -64,7 +89,23 @@
     letter-spacing: -0.01em;
   }
   ::selection {
-    background: var(--color-secondary);
+    background: var(--color-primary);
+    color: var(--color-primary-foreground);
+  }
+  /* Faint paper grain over the whole page; sits above content but never intercepts clicks. */
+  body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    pointer-events: none;
+    opacity: 0.045;
+    mix-blend-mode: multiply;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    [data-theme="dark"] & {
+      opacity: 0.07;
+      mix-blend-mode: overlay;
+    }
   }
   @media (prefers-reduced-motion: reduce) {
     html {
@@ -95,4 +136,78 @@
   letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--color-primary);
+}
+
+/* A painting hung on the wall: the shadow follows the painted pixels, so it also works with object-contain. */
+@utility art-shadow {
+  filter: drop-shadow(0 1px 1px rgb(40 25 15 / 0.1)) drop-shadow(0 14px 22px rgb(60 38 20 / 0.18));
+  [data-theme="dark"] & {
+    filter: drop-shadow(0 1px 1px rgb(0 0 0 / 0.5)) drop-shadow(0 18px 28px rgb(0 0 0 / 0.55));
+  }
+}
+
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Fades and lifts elements in as they scroll into view. Pure CSS, so content is never hidden
+   in browsers without scroll-driven animations or without JavaScript. */
+@utility reveal {
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+      animation: reveal-in linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 55%;
+    }
+  }
+}
+
+@keyframes reveal-in {
+  from {
+    opacity: 0;
+    transform: translateY(2.5rem);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Underline that draws in from the left on hover, and stays for the current page or a pressed toggle. */
+@utility link-draw {
+  position: relative;
+  &::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -0.35rem;
+    height: 1px;
+    background: currentColor;
+    transform: scaleX(0);
+    transform-origin: right;
+    transition: transform 0.45s cubic-bezier(0.65, 0, 0.35, 1);
+  }
+  &:hover::after,
+  &[aria-current="page"]::after,
+  &[aria-pressed="true"]::after {
+    transform: scaleX(1);
+    transform-origin: left;
+  }
+}
+
+/* Slow "settle" for the hero artwork. Animates only `scale`, so it never fights the image's load fade-in. */
+@utility animate-settle {
+  @media (prefers-reduced-motion: no-preference) {
+    animation: settle 2.4s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+  }
+}
+
+@keyframes settle {
+  from {
+    scale: 1.08;
+  }
 }

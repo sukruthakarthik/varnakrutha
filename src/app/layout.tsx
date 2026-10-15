@@ -37,11 +37,20 @@ export const metadata: Metadata = {
   alternates: { canonical: "/" },
 };
 
-export const viewport: Viewport = { themeColor: "#ffffff" };
+const THEME_SCRIPT = `try{if(localStorage.getItem("theme")==="dark")document.documentElement.dataset.theme="dark"}catch(e){}`;
+
+export const viewport: Viewport = { themeColor: "#faf7f2" };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${serif.variable} ${sans.variable}`}>
+    <html lang="en" className={`${serif.variable} ${sans.variable}`} suppressHydrationWarning>
+      <head>
+        {/* Applies the stored theme before first paint, so dark-mode visitors never see a light flash. */}
+        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
+        <noscript>
+          <style>{".img-fade{opacity:1!important;filter:none!important}"}</style>
+        </noscript>
+      </head>
       <body className="min-h-dvh">
         <Providers>{children}</Providers>
       </body>

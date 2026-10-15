@@ -12,3 +12,5 @@ next-env.d.ts
 npm-debug.log*
 .DS_Store
 /.github/image.png
+/docs/DayTodayActivities.txt
+/docs/zone-file-varnakrutha-in.txt

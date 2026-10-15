@@ -8,6 +8,8 @@ import { rateLimit } from "@/lib/rate-limit";
 import { getClientIp } from "@/lib/request";
 import { getPublicDataSource } from "@/services";
 import { provisionArtistAccount, type ProvisionedArtist } from "@/services/accounts";
+import { checkApplicantEmail } from "@/services/applicant-check";
+import { formatDate } from "@/utils/format";
 import { applicationInputSchema, applicationStatusSchema, type ApplicationFormValues } from "./schemas";
 
 export async function submitApplication(values: ApplicationFormValues): Promise<ActionResult> {
@@ -31,6 +33,25 @@ export async function submitApplication(values: ApplicationFormValues): Promise<
   }
 
   try {
+    // One application at a time per email, and none for existing artists. Checked after the rate limit,
+    // so the form can't be used to probe many addresses quickly.
+    const standing = await checkApplicantEmail(input.email);
+    if (standing?.kind === "account") {
+      return {
+        ok: false,
+        error:
+          "An artist account already exists for this email, so there's no need to apply again. Sign in at /admin/login, or use “Forgot your password?” there to set a new one. Please check the email address if this isn't you.",
+        fieldErrors: { email: ["An artist account already exists for this email"] },
+      };
+    }
+    if (standing?.kind === "pending") {
+      return {
+        ok: false,
+        error: `You already applied with this email on ${formatDate(standing.since)}, and it's still being reviewed. You'll hear back by email, so there's no need to apply again. Please check the email address if this isn't you.`,
+        fieldErrors: { email: ["An application with this email is already being reviewed"] },
+      };
+    }
+
     await (await getPublicDataSource()).applications.create(input);
     return { ok: true, data: undefined };
   } catch (error) {

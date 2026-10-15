@@ -53,6 +53,12 @@ export function ApplicationList({ applications }: { applications: ArtistApplicat
   const waiting = applications.map(daysWaiting).filter((d): d is number => d !== null);
   const overdue = waiting.filter((d) => d >= APPLICATION_REPLY_DAYS).length;
   const dueSoon = waiting.filter((d) => d >= DUE_SOON_DAYS && d < APPLICATION_REPLY_DAYS).length;
+  // The join form rejects repeats, but older or simultaneous ones can still exist; flag them for review.
+  const perEmail = new Map<string, number>();
+  for (const a of applications) {
+    const key = a.email.trim().toLowerCase();
+    perEmail.set(key, (perEmail.get(key) ?? 0) + 1);
+  }
 
   return (
     <div className="space-y-6">
@@ -96,7 +102,7 @@ export function ApplicationList({ applications }: { applications: ArtistApplicat
       ) : (
         <ul className="space-y-4">
           {visible.map((a) => (
-            <ApplicationCard key={a.id} application={a} />
+            <ApplicationCard key={a.id} application={a} sameEmailCount={perEmail.get(a.email.trim().toLowerCase()) ?? 1} />
           ))}
         </ul>
       )}
@@ -104,7 +110,7 @@ export function ApplicationList({ applications }: { applications: ArtistApplicat
   );
 }
 
-function ApplicationCard({ application: a }: { application: ArtistApplication }) {
+function ApplicationCard({ application: a, sameEmailCount }: { application: ArtistApplication; sameEmailCount: number }) {
   const router = useRouter();
   const [note, setNote] = useState(a.adminNote ?? "");
   const [pending, startTransition] = useTransition();
@@ -127,17 +133,19 @@ function ApplicationCard({ application: a }: { application: ArtistApplication })
   async function handleAccept() {
     const res = await acceptApplication(a.id);
     if (!res.ok) {
-      toast.error(res.error);
+      toast.error(res.error, { duration: 10_000 });
       return;
     }
     const { artist, access, temporaryPassword } = res.data;
     if (access === "temporary-password" && temporaryPassword) setTemporaryPassword(temporaryPassword);
     toast.success(
       access === "invited"
-        ? `Account created. ${a.email} has been emailed a link to set a password.`
-        : access === "existing-account"
-          ? `${a.email} already had an account; it now manages ${artist.name}.`
+        ? `Account created for ${artist.name}. ${a.email} has been emailed an invitation to set a password.`
+        : access === "password-link"
+          ? `${a.email} already had an account; it now manages ${artist.name}, and they've been emailed a link to set a password.`
           : "Account created. Copy the temporary password below and send it to the artist.",
+      // Long enough to read who was emailed, and how.
+      { duration: 10_000 },
     );
     router.refresh();
   }
@@ -161,6 +169,11 @@ function ApplicationCard({ application: a }: { application: ArtistApplication })
           <p className="flex flex-wrap items-center gap-2 font-medium">
             {a.name} <Badge variant={STATUS_META[a.status].variant}>{STATUS_META[a.status].label}</Badge>
             <WaitingBadge days={daysWaiting(a)} />
+            {sameEmailCount > 1 && (
+              <Badge variant="outline" title="Other applications use the same email; check before accepting">
+                {sameEmailCount} applications from this email
+              </Badge>
+            )}
           </p>
           <p className="text-sm text-muted-foreground">
             {a.city} ·{" "}

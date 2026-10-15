@@ -5,7 +5,8 @@ const URL_PATTERN = /^https?:\/\/\S+$/i;
 
 export const applicationInputSchema = z.object({
   name: z.string().trim().min(2, "Please enter your name").max(100),
-  email: z.string().trim().email("Please enter a valid email").max(200),
+  // Lower-cased so the same address can't apply twice by changing capitals.
+  email: z.string().trim().toLowerCase().email("Please enter a valid email").max(200),
   phone: z
     .string()
     .trim()

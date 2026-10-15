@@ -11,11 +11,12 @@ import { slugify } from "@/utils/format";
 export interface ProvisionedArtist {
   artist: Pick<Artist, "id" | "name" | "slug">;
   /**
-   * "invited": a new account; Supabase emailed a link to set a password.
-   * "existing-account": the email already had an account, now linked to the artist; they sign in as usual.
+   * "invited": a new account; Supabase emailed an invitation to set a password.
+   * "password-link": the email already had an account (often from an earlier attempt whose email failed);
+   *   it is linked to the artist and Supabase emailed a link to set a password.
    * "temporary-password": mock mode; show `temporaryPassword` to the admin once, to pass on.
    */
-  access: "invited" | "existing-account" | "temporary-password";
+  access: "invited" | "password-link" | "temporary-password";
   temporaryPassword?: string;
 }
 
@@ -63,51 +64,92 @@ async function provisionWithSupabase(application: ArtistApplication): Promise<Pr
   const { createAdminSupabaseClient } = await import("@/lib/supabase/admin");
   const admin = createAdminSupabaseClient();
   const email = application.email.trim().toLowerCase();
+  const setPasswordUrl = absoluteUrl("/auth/confirm?next=/admin/set-password");
 
-  // 1. The login: invite a new user, or reuse an existing one that isn't already an artist.
+  // Safe to repeat: an earlier attempt may have created the login or the artist before failing,
+  // so whatever already exists is reused, and the applicant is always emailed a link at the end.
+
+  // 1. The login: invite a new user, or reuse the existing account for this email.
   let userId: string;
-  let invited = false;
+  let createdUser = false;
   const { data: invite, error: inviteError } = await admin.auth.admin.inviteUserByEmail(email, {
-    redirectTo: absoluteUrl("/auth/confirm?next=/admin/set-password"),
+    redirectTo: setPasswordUrl,
     data: { name: application.name },
   });
   if (!inviteError && invite.user) {
     userId = invite.user.id;
-    invited = true;
-  } else if (inviteError && ((inviteError.code as string | undefined) === "email_exists" || /already/i.test(inviteError.message))) {
-    const existing = await findUserIdByEmail(admin, email);
-    if (!existing) throw new RepositoryError(`Couldn't find the existing account for ${email}.`);
-    const { count } = await admin
-      .from("artist_admins")
-      .select("artist_id", { count: "exact", head: true })
-      .eq("user_id", existing);
-    if (count) throw new RepositoryError(`${email} already manages an artist on this site.`, "conflict");
-    userId = existing;
+    createdUser = true;
   } else {
-    throw new RepositoryError(`Couldn't send the invitation email: ${inviteError?.message ?? "unknown error"}`);
+    // Usually "already registered". Supabase also keeps the account when the invitation email itself fails.
+    const existing = await findUserIdByEmail(admin, email);
+    if (!existing) {
+      throw new RepositoryError(`Couldn't send the invitation email: ${inviteError?.message ?? "unknown error"}`);
+    }
+    userId = existing;
   }
 
-  // 2. The artist, and 3. the membership that makes the user its artist. Undo everything if a step fails.
+  let createdArtistId: string | null = null;
   try {
-    const { data: slugs, error: slugError } = await admin.from("artists").select("slug");
-    if (slugError) throw new RepositoryError(slugError.message);
-    const slug = uniqueSlug(application.name, (slugs ?? []).map((r: { slug: string }) => r.slug));
+    // 2. The artist: the one this login already manages, else a new one linked to it.
+    const { data: membership, error: membershipError } = await admin
+      .from("artist_admins")
+      .select("artists(id, name, slug, approved_at)")
+      .eq("user_id", userId)
+      .limit(1)
+      .maybeSingle<{ artists: { id: string; name: string; slug: string; approved_at: string | null } | null }>();
+    if (membershipError) throw new RepositoryError(membershipError.message);
+    const managed = membership?.artists ?? null;
+    let artist: { id: string; name: string; slug: string } | null = null;
 
-    const { data: artist, error: artistError } = await admin
-      .from("artists")
-      .insert({ ...startingProfile(application), slug })
-      .select("id, name, slug")
-      .single<{ id: string; name: string; slug: string }>();
-    if (artistError || !artist) throw new RepositoryError(artistError?.message ?? "Couldn't create the artist");
-
-    const { error: memberError } = await admin.from("artist_admins").insert({ artist_id: artist.id, user_id: userId });
-    if (memberError) {
-      await admin.from("artists").delete().eq("id", artist.id);
-      throw new RepositoryError(memberError.message);
+    // An artist this login already manages is resumed only when it looks like an interrupted accept of this
+    // application: never approved, and not created by another application. Anything else means the email
+    // already has an artist account, and the admin should check the details rather than re-invite.
+    if (managed) {
+      const { data: owners, error: ownersError } = await admin
+        .from("artist_applications")
+        .select("id")
+        .eq("artist_id", managed.id)
+        .neq("id", application.id)
+        .limit(1);
+      if (ownersError) throw new RepositoryError(ownersError.message);
+      if (managed.approved_at || owners?.length) {
+        throw new RepositoryError(
+          `An artist account already exists for ${email} (${managed.name}). Please verify the details: this looks like a repeat application, so decline or delete it instead.`,
+          "conflict",
+        );
+      }
+      artist = { id: managed.id, name: managed.name, slug: managed.slug };
     }
-    return { artist, access: invited ? "invited" : "existing-account" };
+
+    if (!artist) {
+      const { data: slugs, error: slugError } = await admin.from("artists").select("slug");
+      if (slugError) throw new RepositoryError(slugError.message);
+      const slug = uniqueSlug(application.name, (slugs ?? []).map((r: { slug: string }) => r.slug));
+
+      const { data: created, error: artistError } = await admin
+        .from("artists")
+        .insert({ ...startingProfile(application), slug })
+        .select("id, name, slug")
+        .single<{ id: string; name: string; slug: string }>();
+      if (artistError || !created) throw new RepositoryError(artistError?.message ?? "Couldn't create the artist");
+      createdArtistId = created.id;
+
+      const { error: memberError } = await admin.from("artist_admins").insert({ artist_id: created.id, user_id: userId });
+      if (memberError) throw new RepositoryError(memberError.message);
+      artist = created;
+    }
+
+    // 3. The email. A new user already got the invitation; an existing account gets a set-password link
+    //    (the "Reset password" email), which also works if they never finished an earlier invitation.
+    if (!createdUser) {
+      const { error: mailError } = await admin.auth.resetPasswordForEmail(email, { redirectTo: setPasswordUrl });
+      if (mailError) throw new RepositoryError(`Couldn't send the set-password email: ${mailError.message}`);
+    }
+    return { artist, access: createdUser ? "invited" : "password-link" };
   } catch (error) {
-    if (invited) await admin.auth.admin.deleteUser(userId);
+    // Undo only what this attempt created, so it can simply be tried again.
+    if (createdArtistId) await admin.from("artists").delete().eq("id", createdArtistId);
+    if (createdUser) await admin.auth.admin.deleteUser(userId);
     throw error;
   }
 }
@@ -118,7 +160,10 @@ async function provisionMock(application: ArtistApplication): Promise<Provisione
   const db = await getMockDb();
   const email = application.email.trim().toLowerCase();
   if (db.accounts.some((a) => a.email === email)) {
-    throw new RepositoryError(`${email} already manages an artist on this site.`, "conflict");
+    throw new RepositoryError(
+      `An artist account already exists for ${email}. Please verify the details: this looks like a repeat application, so decline or delete it instead.`,
+      "conflict",
+    );
   }
 
   const now = new Date().toISOString();

@@ -61,3 +61,6 @@ export const TAGLINE_MAX_LENGTH = 80;
 
 /** Minimum length for passwords artists choose for their accounts. */
 export const MIN_PASSWORD_LENGTH = 10;
+
+/** Applicants are promised a reply within this many days (join page and thank-you message). */
+export const APPLICATION_REPLY_DAYS = 7;

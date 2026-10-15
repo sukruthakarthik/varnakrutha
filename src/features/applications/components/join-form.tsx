@@ -62,8 +62,9 @@ export function JoinForm() {
         <CheckCircle2 className="size-8 text-primary" aria-hidden />
         <h2 className="font-serif text-3xl">Thank you for applying</h2>
         <p className="text-foreground/80">
+          {/* Keep in step with APPLICATION_REPLY_DAYS, which the admin uses to flag late replies. */}
           Your application has been received. Every application is looked at personally, and you will hear back by
-          email, usually within two weeks.
+          email, usually within a week.
         </p>
       </div>
     );

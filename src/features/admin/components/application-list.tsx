@@ -9,6 +9,7 @@ import { Badge, type BadgeProps } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/input";
 import { acceptApplication, deleteApplication, updateApplication } from "@/features/applications/actions";
+import { APPLICATION_REPLY_DAYS } from "@/lib/constants";
 import { siteConfig } from "@/lib/site";
 import { cn } from "@/lib/utils";
 import { APPLICATION_STATUS, type ApplicationStatus, type ArtistApplication } from "@/types";
@@ -36,12 +37,41 @@ function replyBody(a: ArtistApplication): string {
   }
 }
 
+/** New and shortlisted applicants haven't had a decision yet; accepting or declining is the reply. */
+const AWAITING_REPLY: ApplicationStatus[] = ["new", "shortlisted"];
+/** Warn a couple of days before the promised reply time runs out. */
+const DUE_SOON_DAYS = APPLICATION_REPLY_DAYS - 2;
+
+function daysWaiting(a: ArtistApplication): number | null {
+  if (!AWAITING_REPLY.includes(a.status)) return null;
+  return Math.floor((Date.now() - new Date(a.createdAt).getTime()) / 86_400_000);
+}
+
 export function ApplicationList({ applications }: { applications: ArtistApplication[] }) {
   const [filter, setFilter] = useState<ApplicationStatus | "all">("all");
   const visible = filter === "all" ? applications : applications.filter((a) => a.status === filter);
+  const waiting = applications.map(daysWaiting).filter((d): d is number => d !== null);
+  const overdue = waiting.filter((d) => d >= APPLICATION_REPLY_DAYS).length;
+  const dueSoon = waiting.filter((d) => d >= DUE_SOON_DAYS && d < APPLICATION_REPLY_DAYS).length;
 
   return (
     <div className="space-y-6">
+      {(overdue > 0 || dueSoon > 0) && (
+        <p
+          role="status"
+          className={cn(
+            "rounded-sm border p-4 text-sm",
+            overdue > 0
+              ? "border-destructive/30 bg-destructive/5 text-destructive"
+              : "border-amber-200 bg-amber-50 text-amber-900 dark:border-amber-800 dark:bg-amber-950/60 dark:text-amber-200",
+          )}
+        >
+          Applicants are promised a reply within {APPLICATION_REPLY_DAYS} days.{" "}
+          {overdue > 0 && `${overdue} ${overdue === 1 ? "is" : "are"} overdue. `}
+          {dueSoon > 0 && `${dueSoon} ${dueSoon === 1 ? "is" : "are"} due in the next two days. `}
+          Accept or decline, or send a short &ldquo;still reviewing&rdquo; note with Email.
+        </p>
+      )}
       <div role="group" aria-label="Filter applications" className="flex flex-wrap gap-2">
         {(["all", ...APPLICATION_STATUS] as const).map((s) => (
           <Button
@@ -128,8 +158,9 @@ function ApplicationCard({ application: a }: { application: ArtistApplication })
     <li className={cn("rounded-sm border border-border bg-background p-5", a.status === "new" && "border-l-4 border-l-primary")}>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="space-y-1">
-          <p className="flex items-center gap-2 font-medium">
+          <p className="flex flex-wrap items-center gap-2 font-medium">
             {a.name} <Badge variant={STATUS_META[a.status].variant}>{STATUS_META[a.status].label}</Badge>
+            <WaitingBadge days={daysWaiting(a)} />
           </p>
           <p className="text-sm text-muted-foreground">
             {a.city} ·{" "}
@@ -241,5 +272,22 @@ function ApplicationCard({ application: a }: { application: ArtistApplication })
         />
       </div>
     </li>
+  );
+}
+
+function WaitingBadge({ days }: { days: number | null }) {
+  if (days === null || days < DUE_SOON_DAYS) return null;
+  const overdue = days >= APPLICATION_REPLY_DAYS;
+  return (
+    <span
+      className={cn(
+        "rounded-full px-2.5 py-0.5 text-xs font-medium",
+        overdue
+          ? "bg-destructive/10 text-destructive"
+          : "bg-amber-50 text-amber-800 ring-1 ring-amber-200 dark:bg-amber-950/60 dark:text-amber-200 dark:ring-amber-800",
+      )}
+    >
+      {overdue ? `Reply overdue · ${days} days` : `Reply due · ${days} days`}
+    </span>
   );
 }

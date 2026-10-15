@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 
 const STEPS = [
   { title: "Apply", description: "Tell us about yourself and share links to your work." },
-  { title: "Review", description: "Each application is looked at personally. You will hear back by email." },
+  { title: "Review", description: "Each application is looked at personally. You will hear back by email within a week." },
   { title: "Get featured", description: "If it's a fit, you'll be invited to set up your profile and add your paintings." },
 ];
 

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Wordmark } from "@/components/common/wordmark";
 import { Button } from "@/components/ui/button";
 import { siteConfig } from "@/lib/site";
 import { cn } from "@/lib/utils";
@@ -55,7 +56,7 @@ export function SiteHeader() {
     >
       <div className="container-page flex h-16 items-center justify-between md:h-20">
         <Link href="/" className="group font-serif text-2xl tracking-tight md:text-[1.7rem]">
-          Art By <span className="italic text-primary transition-colors group-hover:text-foreground">Sukrutha</span>
+          <Wordmark accentClassName="transition-colors group-hover:text-foreground" />
         </Link>
 
         <div className="flex items-center gap-2 md:gap-8">

@@ -14,6 +14,7 @@ import {
   UserRound,
 } from "lucide-react";
 import type { Role } from "@/lib/auth/roles";
+import { Wordmark } from "@/components/common/wordmark";
 import { cn } from "@/lib/utils";
 import { signOut } from "../auth-actions";
 
@@ -62,7 +63,7 @@ export function AdminSidebar({
       <div className="flex h-full flex-col gap-4 p-4 md:p-6">
         <div>
           <Link href="/admin" className="font-serif text-xl">
-            Art By <span className="text-primary">Sukrutha</span>
+            <Wordmark />
           </Link>
           <p className="text-xs text-muted-foreground">
             {artistName} · {role === "admin" ? "Admin" : "Artist"}

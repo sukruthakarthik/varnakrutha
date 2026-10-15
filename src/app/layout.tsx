@@ -15,10 +15,11 @@ const sans = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swa
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
-  title: { default: `${siteConfig.name} — Original Paintings & Heritage Art`, template: `%s | ${siteConfig.name}` },
+  title: { default: `${siteConfig.name} — Original Paintings by Independent Artists`, template: `%s | ${siteConfig.name}` },
   description: siteConfig.description,
   applicationName: siteConfig.name,
   keywords: [
+    "Varnakrutha",
     "Sukrutha Karthik",
     "heritage art",
     "temple art",

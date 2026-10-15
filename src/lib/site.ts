@@ -1,10 +1,11 @@
 import { env } from "@/lib/env";
 
 export const siteConfig = {
-  name: "Art By Sukrutha",
+  // The platform. Each artist's own pages are titled "Art by <first name>" (see artistBrand).
+  name: "Varnakrutha",
   tagline: "Original Paintings, Heritage Art, Landscapes and Creative Expressions",
   description:
-    "The online gallery of artist Sukrutha Karthik — original heritage paintings, temple art, landscapes, watercolors, acrylics and sketches.",
+    "Varnakrutha is an online gallery of original paintings by Sukrutha Karthik and featured artists: heritage, temple art, landscapes, watercolors, acrylics and sketches.",
   url: env.NEXT_PUBLIC_SITE_URL.replace(/\/$/, ""),
   defaultArtistSlug: env.NEXT_PUBLIC_DEFAULT_ARTIST_SLUG,
   // Both optional: links are hidden when unset.
@@ -51,4 +52,14 @@ export function artworkPath(artworkSlug: string, artistSlug: string): string {
   return artistSlug === siteConfig.defaultArtistSlug
     ? `/artworks/${artworkSlug}`
     : `/artists/${artistSlug}/artworks/${artworkSlug}`;
+}
+
+/** "Sukrutha Karthik" → "Sukrutha". */
+export function artistFirstName(name: string): string {
+  return name.trim().split(/\s+/)[0] || name;
+}
+
+/** An artist's own brand on their pages, e.g. "Art by Dhyan". */
+export function artistBrand(name: string): string {
+  return `Art by ${artistFirstName(name)}`;
 }

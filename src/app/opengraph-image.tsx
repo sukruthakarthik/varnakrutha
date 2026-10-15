@@ -22,7 +22,7 @@ export default function OpengraphImage() {
         }}
       >
         <div style={{ fontSize: 28, letterSpacing: 8, textTransform: "uppercase", color: "#9c4a2f" }}>
-          Original Art
+          Original art by independent artists
         </div>
         <div style={{ fontSize: 110, marginTop: 24 }}>{siteConfig.name}</div>
         <div style={{ fontSize: 34, marginTop: 24, maxWidth: 900, color: "#3b2a20" }}>{siteConfig.tagline}</div>

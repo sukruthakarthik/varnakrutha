@@ -209,16 +209,17 @@ function ApplicationCard({ application: a }: { application: ArtistApplication })
             <Star aria-hidden /> Shortlist
           </Button>
         )}
-        {a.status !== "accepted" && (
+        {/* Also offered for applications accepted before accepting created accounts, which have no artist yet. */}
+        {!a.artistId && (
           <ConfirmDialog
-            title={`Accept ${a.name}?`}
+            title={a.status === "accepted" ? `Create ${a.name}'s account?` : `Accept ${a.name}?`}
             description={`This creates an artist account for ${a.email}. They can add and edit only their own artworks, and their page goes live once you approve their profile.`}
-            confirmLabel="Accept and create account"
+            confirmLabel={a.status === "accepted" ? "Create account" : "Accept and create account"}
             confirmVariant="default"
             onConfirm={handleAccept}
             trigger={
               <Button size="sm" variant="ghost" disabled={pending}>
-                <Check aria-hidden /> Accept
+                <Check aria-hidden /> {a.status === "accepted" ? "Create account" : "Accept"}
               </Button>
             }
           />

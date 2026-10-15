@@ -1,3 +1,4 @@
+import { ImageProtection } from "@/components/common/image-protection";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
 import { getCurrentArtist } from "@/services";
@@ -12,6 +13,7 @@ export default async function PublicLayout({ children }: { children: React.React
       >
         Skip to content
       </a>
+      <ImageProtection />
       <SiteHeader />
       <main id="main">{children}</main>
       <SiteFooter artist={artist} />

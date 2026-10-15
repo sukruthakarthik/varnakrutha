@@ -1,27 +1,33 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { AuthCard } from "@/features/admin/components/auth-card";
 import { LoginForm } from "@/features/admin/components/login-form";
 import { getAdmin } from "@/lib/auth";
 import { isSupabase } from "@/lib/env";
 
 export const metadata = { title: "Sign in" };
 
-export default async function AdminLoginPage() {
+type Props = { searchParams: Promise<{ error?: string }> };
+
+export default async function AdminLoginPage({ searchParams }: Props) {
   if (await getAdmin()) redirect("/admin");
+  const { error } = await searchParams;
 
   return (
-    <main className="flex min-h-dvh items-center justify-center px-4">
-      <div className="w-full max-w-sm space-y-8 rounded-sm border border-border bg-background p-8 shadow-sm">
-        <div className="space-y-2 text-center">
-          <Link href="/" className="font-serif text-2xl">
-            Art By <span className="text-primary">Sukrutha</span>
+    <AuthCard title="Sign in">
+      {error === "link" && (
+        <p role="alert" className="rounded-sm bg-secondary/60 px-3 py-2 text-sm">
+          That link has expired or was already used. Request a new one below.
+        </p>
+      )}
+      <LoginForm mode={isSupabase ? "email" : "mock"} />
+      {isSupabase && (
+        <p className="text-center text-sm">
+          <Link href="/admin/forgot-password" className="text-muted-foreground underline-offset-4 hover:text-primary hover:underline">
+            Forgot your password, or invitation expired?
           </Link>
-          <h1 className="font-sans text-sm font-medium uppercase tracking-[0.2em] text-muted-foreground">
-            Admin sign in
-          </h1>
-        </div>
-        <LoginForm withEmail={isSupabase} />
-      </div>
-    </main>
+        </p>
+      )}
+    </AuthCard>
   );
 }

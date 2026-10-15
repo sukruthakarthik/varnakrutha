@@ -159,7 +159,7 @@ export default async function HomePage() {
           <span className="absolute inset-0 -z-10 bg-gradient-to-b from-[#1d1a17]/30 to-[#1d1a17]" aria-hidden />
           <p className="text-xs font-medium uppercase tracking-[0.25em] text-[#e9c9a8]">Commissions & enquiries</p>
           <h2 className="mx-auto mt-6 max-w-3xl text-balance text-4xl leading-[1.05] md:text-6xl">
-            A painting made <span className="italic text-[#e9c9a8]">just for you</span>
+            Bring an original home, or commission one painted <span className="italic text-[#e9c9a8]">just for you</span>
           </h2>
           <p className="mx-auto mt-6 max-w-xl text-pretty text-[#faf7f2]/70">
             Enquire about an available work, or commission a piece of a place, a temple or a memory that matters to you.

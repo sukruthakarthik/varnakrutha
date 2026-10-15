@@ -37,25 +37,37 @@ async function hmacKey(secret: string) {
   );
 }
 
-export async function createSessionToken(secret: string): Promise<string> {
+export type SessionRole = "admin" | "artist";
+
+export interface SessionClaims {
+  role: SessionRole;
+  /** The artist an "artist" session manages; null for the site admin. */
+  artistId: string | null;
+}
+
+// Token: <role>.<artistId or "-">.<expiresAt>.<signature>. UUIDs contain no dots, so splitting is safe.
+export async function createSessionToken(secret: string, claims: SessionClaims): Promise<string> {
   const expiresAt = Math.floor(Date.now() / 1000) + SESSION_TTL_SECONDS;
-  const payload = `admin.${expiresAt}`;
+  const payload = `${claims.role}.${claims.artistId ?? "-"}.${expiresAt}`;
   const signature = await crypto.subtle.sign("HMAC", await hmacKey(secret), encoder.encode(payload));
   return `${payload}.${toBase64Url(signature)}`;
 }
 
-export async function verifySessionToken(token: string | undefined): Promise<boolean> {
+export async function verifySessionToken(token: string | undefined): Promise<SessionClaims | null> {
   const secret = getSessionSecret();
-  if (!token || !secret) return false;
-  const [role, exp, sig] = token.split(".");
-  if (role !== "admin" || !exp || !sig) return false;
-  if (!/^\d+$/.test(exp) || Number(exp) < Math.floor(Date.now() / 1000)) return false;
+  if (!token || !secret) return null;
+  const [role, artistId, exp, sig, ...rest] = token.split(".");
+  if (rest.length || !artistId || !exp || !sig) return null;
+  if (role !== "admin" && role !== "artist") return null;
+  if (role === "artist" && artistId === "-") return null;
+  if (!/^\d+$/.test(exp) || Number(exp) < Math.floor(Date.now() / 1000)) return null;
   const signature = fromBase64Url(sig);
-  if (!signature) return false;
-  return crypto.subtle.verify(
+  if (!signature) return null;
+  const valid = await crypto.subtle.verify(
     "HMAC",
     await hmacKey(secret),
     signature,
-    encoder.encode(`${role}.${exp}`),
+    encoder.encode(`${role}.${artistId}.${exp}`),
   );
+  return valid ? { role, artistId: artistId === "-" ? null : artistId } : null;
 }

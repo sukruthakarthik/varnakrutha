@@ -44,6 +44,8 @@ export const applicationInputSchema = z.object({
     .trim()
     .min(30, "Please write at least a couple of sentences")
     .max(2000),
+  // Featured work must be the artist's own; the Copyright & Disclaimer page relies on this confirmation.
+  originalWork: z.boolean().refine((v) => v, "Please confirm the work you share is your own"),
   // Honeypot field — must stay empty; bots tend to fill every input.
   company: z.string().max(0).optional(),
 });

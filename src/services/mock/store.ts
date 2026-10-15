@@ -5,12 +5,22 @@ import { seedArtists, seedArtworks } from "@/data/seed";
 import type { ArtistProfileInput } from "@/features/artists/schemas";
 import type { Artist, ArtistApplication, Artwork, Inquiry } from "@/types";
 
+/** A local stand-in for a Supabase login, created when an application is accepted. */
+export interface MockAccount {
+  email: string;
+  /** scrypt, as produced by hashPassword() in lib/auth/password. */
+  passwordHash: string;
+  artistId: string;
+  createdAt: string;
+}
+
 export interface MockDb {
   artists: Artist[];
   artworks: Artwork[];
   inquiries: Inquiry[];
   profileReviews: { artistId: string; profile: ArtistProfileInput; submittedAt: string }[];
   applications: ArtistApplication[];
+  accounts: MockAccount[];
 }
 
 const DB_DIR = path.join(process.cwd(), ".data");
@@ -42,10 +52,11 @@ async function load(): Promise<MockDb> {
       };
     });
     db.profileReviews ??= [];
-    db.applications ??= [];
+    db.applications = (db.applications ?? []).map((a) => ({ ...a, artistId: a.artistId ?? null }));
+    db.accounts ??= [];
     return db;
   } catch {
-    return structuredClone({ artists: seedArtists, artworks: seedArtworks, inquiries: [], profileReviews: [], applications: [] });
+    return structuredClone({ artists: seedArtists, artworks: seedArtworks, inquiries: [], profileReviews: [], applications: [], accounts: [] });
   }
 }
 

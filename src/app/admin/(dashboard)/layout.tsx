@@ -1,5 +1,6 @@
 import { AdminSidebar } from "@/features/admin/components/admin-sidebar";
 import { requireAdminPage } from "@/lib/auth";
+import { isSupabase } from "@/lib/env";
 import type { DataSource } from "@/services/types";
 
 async function getPlatformCounts(ds: DataSource) {
@@ -12,7 +13,12 @@ export default async function AdminDashboardLayout({ children }: { children: Rea
   const platformCounts = admin.isPlatformAdmin ? await getPlatformCounts(admin.dataSource) : null;
   return (
     <div className="md:flex">
-      <AdminSidebar artistName={admin.artist.name} platformCounts={platformCounts} />
+      <AdminSidebar
+        artistName={admin.artist.name}
+        role={admin.role}
+        platformCounts={platformCounts}
+        canChangePassword={isSupabase}
+      />
       <main className="min-w-0 flex-1 p-4 md:p-10">{children}</main>
     </div>
   );

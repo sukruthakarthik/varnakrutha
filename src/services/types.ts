@@ -59,7 +59,8 @@ export interface ArtworkRepository {
 
 export interface InquiryRepository {
   create(artistId: string, input: Omit<InquiryInput, "company">): Promise<Inquiry>;
-  list(artistId: string): Promise<InquiryWithArtwork[]>;
+  /** Every artist's inquiries when `artistId` is omitted. */
+  list(artistId?: string): Promise<InquiryWithArtwork[]>;
   setStatus(id: string, status: InquiryStatus): Promise<void>;
   delete(id: string): Promise<void>;
 }
@@ -70,9 +71,11 @@ export interface ApplicationUpdate {
 }
 
 export interface ApplicationRepository {
-  create(input: Omit<ApplicationInput, "company">): Promise<void>;
+  create(input: Omit<ApplicationInput, "company" | "originalWork">): Promise<void>;
   list(): Promise<ArtistApplication[]>;
   update(id: string, update: ApplicationUpdate): Promise<void>;
+  /** Records that the application was accepted and which artist it created. */
+  markAccepted(id: string, artistId: string): Promise<void>;
   delete(id: string): Promise<void>;
 }
 

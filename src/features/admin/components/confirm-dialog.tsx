@@ -18,10 +18,19 @@ interface ConfirmDialogProps {
   title: string;
   description: string;
   confirmLabel?: string;
+  /** "destructive" (default) for deletions; "default" for confirming a non-destructive step. */
+  confirmVariant?: "destructive" | "default";
   onConfirm: () => Promise<void>;
 }
 
-export function ConfirmDialog({ trigger, title, description, confirmLabel = "Delete", onConfirm }: ConfirmDialogProps) {
+export function ConfirmDialog({
+  trigger,
+  title,
+  description,
+  confirmLabel = "Delete",
+  confirmVariant = "destructive",
+  onConfirm,
+}: ConfirmDialogProps) {
   const [open, setOpen] = useState(false);
   const [pending, setPending] = useState(false);
 
@@ -47,7 +56,7 @@ export function ConfirmDialog({ trigger, title, description, confirmLabel = "Del
           <Button variant="outline" onClick={() => setOpen(false)} disabled={pending}>
             Cancel
           </Button>
-          <Button variant="destructive" onClick={handleConfirm} disabled={pending}>
+          <Button variant={confirmVariant} onClick={handleConfirm} disabled={pending}>
             {pending && <Loader2 className="animate-spin" aria-hidden />}
             {confirmLabel}
           </Button>

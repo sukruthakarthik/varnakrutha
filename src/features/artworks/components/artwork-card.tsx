@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { CATEGORY_META } from "@/lib/constants";
+import { artworkPath, siteConfig } from "@/lib/site";
 import { cn } from "@/lib/utils";
 import type { Artwork } from "@/types";
 import { ArtworkImage } from "./artwork-image";
@@ -11,6 +12,10 @@ interface ArtworkCardProps {
   layout?: "grid" | "masonry";
   priority?: boolean;
   sizes?: string;
+  /** Whose work this is; defaults to the site's own artist. */
+  artist?: { name: string; slug: string };
+  /** Credit the artist under the title (for pages that mix artists). */
+  showArtist?: boolean;
 }
 
 export function ArtworkCard({
@@ -18,13 +23,15 @@ export function ArtworkCard({
   layout = "grid",
   priority,
   sizes = "(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw",
+  artist,
+  showArtist,
 }: ArtworkCardProps) {
   const alt = `${artwork.title}${artwork.medium ? ` — ${artwork.medium}` : ""}`;
 
   return (
     <article className={cn("group reveal", layout === "masonry" && "mb-10 break-inside-avoid")}>
       <Link
-        href={`/artworks/${artwork.slug}`}
+        href={artworkPath(artwork.slug, artist?.slug ?? siteConfig.defaultArtistSlug)}
         className="block rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-4 focus-visible:ring-offset-background"
       >
         {layout === "grid" ? (
@@ -50,6 +57,7 @@ export function ArtworkCard({
         <div className="mt-5 flex items-start justify-between gap-4">
           <div className="min-w-0 space-y-1">
             <h3 className="font-serif text-[1.35rem] leading-snug transition-colors group-hover:text-primary">{artwork.title}</h3>
+            {showArtist && artist && <p className="font-serif text-sm italic text-foreground/70">by {artist.name}</p>}
             <p className="text-[0.7rem] uppercase tracking-[0.18em] text-muted-foreground">
               {[artwork.medium, artwork.year ?? CATEGORY_META[artwork.category].label].filter(Boolean).join(" · ")}
             </p>

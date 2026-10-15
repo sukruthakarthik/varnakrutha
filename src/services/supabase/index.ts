@@ -91,6 +91,7 @@ interface InquiryRow {
   status: InquiryStatus;
   created_at: string;
   artworks: { id: string; title: string; slug: string } | null;
+  artists: { name: string; slug: string } | null;
 }
 
 interface ApplicationRow {
@@ -105,6 +106,7 @@ interface ApplicationRow {
   statement: string;
   status: ApplicationStatus;
   admin_note: string | null;
+  artist_id: string | null;
   created_at: string;
 }
 
@@ -204,6 +206,7 @@ const toApplication = (r: ApplicationRow): ArtistApplication => ({
   statement: r.statement,
   status: r.status,
   adminNote: r.admin_note,
+  artistId: r.artist_id,
   createdAt: r.created_at,
 });
 
@@ -411,11 +414,12 @@ export function createSupabaseDataSource(client: SupabaseClient): DataSource {
         };
       },
       async list(artistId) {
-        const { data, error } = await client
+        let query = client
           .from("inquiries")
-          .select("*, artworks(id, title, slug)")
-          .eq("artist_id", artistId)
+          .select("*, artworks(id, title, slug), artists(name, slug)")
           .order("created_at", { ascending: false });
+        if (artistId) query = query.eq("artist_id", artistId);
+        const { data, error } = await query;
         fail(error);
         return ((data ?? []) as InquiryRow[]).map(
           (r): InquiryWithArtwork => ({
@@ -430,6 +434,7 @@ export function createSupabaseDataSource(client: SupabaseClient): DataSource {
             status: r.status,
             createdAt: r.created_at,
             artwork: r.artworks,
+            artist: r.artists,
           }),
         );
       },
@@ -442,7 +447,7 @@ export function createSupabaseDataSource(client: SupabaseClient): DataSource {
     },
 
     applications: {
-      async create(input: Omit<ApplicationInput, "company">) {
+      async create(input: Omit<ApplicationInput, "company" | "originalWork">) {
         // Applicants may insert but not read applications, so nothing is selected back.
         fail(
           (
@@ -475,6 +480,12 @@ export function createSupabaseDataSource(client: SupabaseClient): DataSource {
           .select("id");
         fail(error);
         if (!data?.length) throw new RepositoryError("Application not found", "not_found");
+      },
+      async markAccepted(id, artistId) {
+        fail(
+          (await client.from("artist_applications").update({ status: "accepted", artist_id: artistId }).eq("id", id))
+            .error,
+        );
       },
       async delete(id) {
         fail((await client.from("artist_applications").delete().eq("id", id)).error);

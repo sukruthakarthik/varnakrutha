@@ -14,6 +14,7 @@ import { Label } from "@/components/ui/label";
 import { createArtwork, updateArtwork } from "@/features/artworks/actions";
 import { artworkInputSchema, type ArtworkFormValues, type ArtworkInput } from "@/features/artworks/schemas";
 import { AVAILABILITY_META, CATEGORY_META } from "@/lib/constants";
+import { artworkPath } from "@/lib/site";
 import { AVAILABILITY, CATEGORIES, type Artwork } from "@/types";
 import { slugify } from "@/utils/format";
 import { adminKeys } from "../hooks";
@@ -39,7 +40,8 @@ function toFormValues(a?: Artwork): ArtworkFormValues {
   };
 }
 
-export function ArtworkForm({ artwork }: { artwork?: Artwork }) {
+/** `artistSlug` is the signed-in artist's, for showing the artwork's public URL. */
+export function ArtworkForm({ artwork, artistSlug }: { artwork?: Artwork; artistSlug: string }) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [slugTouched, setSlugTouched] = useState(Boolean(artwork));
@@ -93,7 +95,7 @@ export function ArtworkForm({ artwork }: { artwork?: Artwork }) {
             <Field id="title" label="Title" error={err("title")} className="sm:col-span-2">
               <Input id="title" aria-invalid={!!errors.title} {...titleField} />
             </Field>
-            <Field id="slug" label="URL slug" error={err("slug")} hint={`/artworks/${slug || "…"}`} className="sm:col-span-2">
+            <Field id="slug" label="URL slug" error={err("slug")} hint={artworkPath(slug || "…", artistSlug)} className="sm:col-span-2">
               <Input id="slug" aria-invalid={!!errors.slug} {...register("slug", { onChange: () => setSlugTouched(true) })} />
             </Field>
             <Field id="category" label="Category" error={err("category")}>

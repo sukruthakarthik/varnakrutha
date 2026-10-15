@@ -2,13 +2,14 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Check, ExternalLink, Mail, Phone, Star, Trash2, UserPlus, X } from "lucide-react";
+import { Check, Copy, ExternalLink, KeyRound, Mail, Phone, Star, Trash2, UserPlus, X } from "lucide-react";
 import { toast } from "sonner";
 import { EmptyState } from "@/components/common/empty-state";
 import { Badge, type BadgeProps } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/input";
-import { deleteApplication, updateApplication } from "@/features/applications/actions";
+import { acceptApplication, deleteApplication, updateApplication } from "@/features/applications/actions";
+import { siteConfig } from "@/lib/site";
 import { cn } from "@/lib/utils";
 import { APPLICATION_STATUS, type ApplicationStatus, type ArtistApplication } from "@/types";
 import { formatDate } from "@/utils/format";
@@ -27,7 +28,7 @@ const EMAIL_SUBJECT = "Your application to Art By Sukrutha";
 function replyBody(a: ArtistApplication): string {
   switch (a.status) {
     case "accepted":
-      return `Hi ${a.name},\n\nThank you for applying to be featured on Art By Sukrutha. I loved your work and would be happy to feature you.\n\nI'll be in touch shortly with the next steps for setting up your profile.\n\nWarm regards,\nSukrutha`;
+      return `Hi ${a.name},\n\nThank you for applying to be featured on Art By Sukrutha. I loved your work and would be happy to feature you.\n\nI've created your artist account. You'll receive a separate email with a link to set your password. Then sign in at ${siteConfig.url}/admin, add your artworks and complete your profile. Your page goes live once I've reviewed it.\n\nWarm regards,\nSukrutha`;
     case "declined":
       return `Hi ${a.name},\n\nThank you for applying to be featured on Art By Sukrutha and for sharing your work with me.\n\nI'm not able to feature it at the moment, but I wish you all the best and hope you keep painting.\n\nWarm regards,\nSukrutha`;
     default:
@@ -77,6 +78,8 @@ function ApplicationCard({ application: a }: { application: ArtistApplication })
   const router = useRouter();
   const [note, setNote] = useState(a.adminNote ?? "");
   const [pending, startTransition] = useTransition();
+  // Mock mode only: shown once after accepting, since it isn't stored anywhere readable.
+  const [temporaryPassword, setTemporaryPassword] = useState<string | null>(null);
   const noteChanged = note.trim() !== (a.adminNote ?? "");
 
   function save(status: ApplicationStatus, message: string) {
@@ -89,6 +92,24 @@ function ApplicationCard({ application: a }: { application: ArtistApplication })
       toast.success(message);
       router.refresh();
     });
+  }
+
+  async function handleAccept() {
+    const res = await acceptApplication(a.id);
+    if (!res.ok) {
+      toast.error(res.error);
+      return;
+    }
+    const { artist, access, temporaryPassword } = res.data;
+    if (access === "temporary-password" && temporaryPassword) setTemporaryPassword(temporaryPassword);
+    toast.success(
+      access === "invited"
+        ? `Account created. ${a.email} has been emailed a link to set a password.`
+        : access === "existing-account"
+          ? `${a.email} already had an account; it now manages ${artist.name}.`
+          : "Account created. Copy the temporary password below and send it to the artist.",
+    );
+    router.refresh();
   }
 
   async function handleDelete() {
@@ -158,6 +179,25 @@ function ApplicationCard({ application: a }: { application: ArtistApplication })
         )}
       </div>
 
+      {temporaryPassword && (
+        <div role="status" className="mt-4 space-y-2 rounded-sm border border-primary/30 bg-secondary/60 p-4 text-sm">
+          <p className="flex items-center gap-2 font-medium">
+            <KeyRound className="size-4" aria-hidden /> Temporary password (shown once)
+          </p>
+          <div className="flex flex-wrap items-center gap-2">
+            <code className="rounded-sm bg-background px-2 py-1 font-mono">{temporaryPassword}</code>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => navigator.clipboard.writeText(temporaryPassword).then(() => toast.success("Copied"))}
+            >
+              <Copy aria-hidden /> Copy
+            </Button>
+          </div>
+          <p className="text-muted-foreground">The artist signs in at /admin/login with {a.email} and this password.</p>
+        </div>
+      )}
+
       <div className="mt-4 flex flex-wrap gap-2">
         <Button asChild size="sm" variant="outline">
           <a href={mailto}>
@@ -170,9 +210,18 @@ function ApplicationCard({ application: a }: { application: ArtistApplication })
           </Button>
         )}
         {a.status !== "accepted" && (
-          <Button size="sm" variant="ghost" disabled={pending} onClick={() => save("accepted", "Accepted. Email them the next steps.")}>
-            <Check aria-hidden /> Accept
-          </Button>
+          <ConfirmDialog
+            title={`Accept ${a.name}?`}
+            description={`This creates an artist account for ${a.email}. They can add and edit only their own artworks, and their page goes live once you approve their profile.`}
+            confirmLabel="Accept and create account"
+            confirmVariant="default"
+            onConfirm={handleAccept}
+            trigger={
+              <Button size="sm" variant="ghost" disabled={pending}>
+                <Check aria-hidden /> Accept
+              </Button>
+            }
+          />
         )}
         {a.status !== "declined" && (
           <Button size="sm" variant="ghost" disabled={pending} onClick={() => save("declined", "Declined. Remember to let them know.")}>

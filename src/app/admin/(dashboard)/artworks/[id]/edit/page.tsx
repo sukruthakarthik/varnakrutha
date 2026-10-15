@@ -4,6 +4,7 @@ import { ExternalLink } from "lucide-react";
 import { z } from "zod";
 import { ArtworkForm } from "@/features/admin/components/artwork-form";
 import { requireAdminPage } from "@/lib/auth";
+import { artworkPath } from "@/lib/site";
 
 export const metadata = { title: "Edit artwork" };
 
@@ -21,11 +22,11 @@ export default async function EditArtworkPage({ params }: Props) {
     <div className="space-y-8">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <h1 className="text-4xl">Edit “{artwork.title}”</h1>
-        <Link href={`/artworks/${artwork.slug}`} target="_blank" className="inline-flex items-center gap-2 text-sm text-primary hover:underline">
+        <Link href={artworkPath(artwork.slug, artist.slug)} target="_blank" className="inline-flex items-center gap-2 text-sm text-primary hover:underline">
           View live <ExternalLink className="size-4" aria-hidden />
         </Link>
       </div>
-      <ArtworkForm artwork={artwork} />
+      <ArtworkForm artwork={artwork} artistSlug={artist.slug} />
     </div>
   );
 }

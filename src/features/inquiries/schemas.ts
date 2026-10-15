@@ -16,6 +16,13 @@ export const inquiryInputSchema = z.object({
     .uuid()
     .nullable()
     .or(z.literal("").transform(() => null)),
+  // Which artist the enquiry is about when it isn't about a specific artwork; defaults to the site's own artist.
+  artistId: z
+    .string()
+    .uuid()
+    .nullable()
+    .optional()
+    .or(z.literal("").transform(() => null)),
   // Honeypot field — must stay empty; bots tend to fill every input.
   company: z.string().max(0).optional(),
 });

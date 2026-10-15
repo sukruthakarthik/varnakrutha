@@ -197,13 +197,15 @@ export function createMockDataSource(): DataSource {
       async list(artistId) {
         const db = await getMockDb();
         return db.inquiries
-          .filter((i) => i.artistId === artistId)
+          .filter((i) => !artistId || i.artistId === artistId)
           .sort(byNewest)
           .map((i) => {
             const artwork = db.artworks.find((a) => a.id === i.artworkId);
+            const artist = db.artists.find((a) => a.id === i.artistId);
             return {
               ...i,
               artwork: artwork ? { id: artwork.id, title: artwork.title, slug: artwork.slug } : null,
+              artist: artist ? { name: artist.name, slug: artist.slug } : null,
             };
           });
       },
@@ -229,6 +231,7 @@ export function createMockDataSource(): DataSource {
           id: crypto.randomUUID(),
           status: "new",
           adminNote: null,
+          artistId: null,
           createdAt: new Date().toISOString(),
         });
         await persistMockDb(db);
@@ -242,6 +245,14 @@ export function createMockDataSource(): DataSource {
         if (!application) throw new RepositoryError("Application not found", "not_found");
         application.status = status;
         application.adminNote = adminNote;
+        await persistMockDb(db);
+      },
+      async markAccepted(id, artistId) {
+        const db = await getMockDb();
+        const application = db.applications.find((a) => a.id === id);
+        if (!application) throw new RepositoryError("Application not found", "not_found");
+        application.status = "accepted";
+        application.artistId = artistId;
         await persistMockDb(db);
       },
       async delete(id) {

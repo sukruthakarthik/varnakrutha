@@ -13,9 +13,11 @@ import { inquiryInputSchema, type InquiryFormValues, type InquiryInput } from ".
 
 interface ContactFormProps {
   artwork?: { id: string; title: string } | null;
+  /** Set when enquiring about another artist on the site (not the site's own artist). */
+  artist?: { id: string; name: string } | null;
 }
 
-export function ContactForm({ artwork }: ContactFormProps) {
+export function ContactForm({ artwork, artist }: ContactFormProps) {
   const [sent, setSent] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
 
@@ -32,9 +34,10 @@ export function ContactForm({ artwork }: ContactFormProps) {
       name: "",
       email: "",
       phone: "",
-      subject: artwork ? `Purchase enquiry: ${artwork.title}` : "",
+      subject: artwork ? `Purchase enquiry: ${artwork.title}` : artist ? `Enquiry about ${artist.name}'s work` : "",
       message: "",
       artworkId: artwork?.id ?? "",
+      artistId: artist?.id ?? "",
       company: "",
     },
   });
@@ -73,6 +76,7 @@ export function ContactForm({ artwork }: ContactFormProps) {
   return (
     <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-6">
       <input type="hidden" {...register("artworkId")} />
+      <input type="hidden" {...register("artistId")} />
       {/* Honeypot: hidden from people and assistive tech. */}
       <div aria-hidden="true" className="absolute -left-[9999px] h-0 w-0 overflow-hidden">
         <label htmlFor="company">Company</label>

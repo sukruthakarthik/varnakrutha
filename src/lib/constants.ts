@@ -58,3 +58,6 @@ export const STORAGE_BUCKET = "artworks";
 
 /** The tagline sits beside the home page hero artwork, so it must stay short. */
 export const TAGLINE_MAX_LENGTH = 80;
+
+/** Minimum length for passwords artists choose for their accounts. */
+export const MIN_PASSWORD_LENGTH = 10;

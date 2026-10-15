@@ -68,8 +68,22 @@ Go to **Project Settings → API Keys** and copy:
 | --- | --- |
 | Project URL (`https://xxxx.supabase.co`) | `NEXT_PUBLIC_SUPABASE_URL` |
 | `anon` / publishable key | `NEXT_PUBLIC_SUPABASE_ANON_KEY` |
+| `service_role` / secret key | `SUPABASE_SERVICE_ROLE_KEY` (server only) |
 
-> ⚠️ Never use the `service_role` or secret key in this app. It bypasses all security rules.
+> ⚠️ The `service_role` key bypasses all security rules. The app uses it in exactly one place: when an admin accepts an artist's application, to create the artist's login. Store it **only** as `SUPABASE_SERVICE_ROLE_KEY`. Never give it a `NEXT_PUBLIC_` prefix, which would publish it to every visitor.
+
+### 1.7 Artist account emails
+Accepting an application at `/admin/applications` creates the artist and emails them an invitation to choose a password. Artists who forget their password use **Forgot your password?** on the sign-in page. Both emails must link back to the site:
+
+1. **Authentication → URL Configuration**: set **Site URL** to your live address (e.g. `https://artbysukrutha.vercel.app`), and add `https://artbysukrutha.vercel.app/**` under **Redirect URLs**.
+2. **Authentication → Emails → Invite user**: replace the link in the template with
+   `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=invite&next=/admin/set-password`
+3. **Authentication → Emails → Reset password**: replace the link with
+   `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=recovery&next=/admin/set-password`
+
+Supabase's built-in email service only sends a few emails per hour. Before inviting many artists, add your own SMTP provider under **Authentication → Emails → SMTP Settings**.
+
+**Roles.** Admins are users listed in `platform_admins`. They review profiles, accept applications and read every inquiry. Artists are users linked to one artist in `artist_admins`. They manage only their own artworks and submit their profile for review. Guests don't sign in; they see approved artists' work only. Your own account from step 1.5 is already an admin, through the `20261008030000_profile_review.sql` migration.
 
 ---
 
@@ -104,6 +118,7 @@ npx vercel env add NEXT_PUBLIC_SITE_URL production
 npx vercel env add NEXT_PUBLIC_CONTACT_EMAIL production
 npx vercel env add NEXT_PUBLIC_WHATSAPP_NUMBER production
 npx vercel env add CRON_SECRET production
+npx vercel env add SUPABASE_SERVICE_ROLE_KEY production
 ```
 
 | Variable | Value |
@@ -115,6 +130,7 @@ npx vercel env add CRON_SECRET production
 | `NEXT_PUBLIC_SITE_URL` | `https://artbysukrutha.vercel.app` (or your custom domain) |
 | `NEXT_PUBLIC_CONTACT_EMAIL` | An address you actually read, e.g. your Gmail. Optional: leave it out to hide the email link. |
 | `NEXT_PUBLIC_WHATSAPP_NUMBER` | Your WhatsApp number with country code, digits only, e.g. `919876543210`. Optional: leave it out to hide the WhatsApp link. |
+| `SUPABASE_SERVICE_ROLE_KEY` | `service_role` / secret key from step 1.6. Server only; needed to accept artist applications. |
 | `CRON_SECRET` | A random string. Generate one with `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`. It protects the daily keep-alive job. |
 
 `ADMIN_PASSWORD` and `ADMIN_SESSION_SECRET` are only for local mock mode. They are **not** needed on Vercel.

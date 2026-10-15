@@ -3,15 +3,17 @@ import { createServerClient } from "@supabase/ssr";
 import { ADMIN_COOKIE, verifySessionToken } from "@/lib/auth/session";
 
 const LOGIN_PATH = "/admin/login";
+/** Admin pages a signed-out visitor may open. */
+const PUBLIC_PATHS = new Set([LOGIN_PATH, "/admin/forgot-password"]);
 
 // First line of defence only — every admin page and action re-checks authorisation server-side.
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const isLogin = pathname === LOGIN_PATH;
+  const isPublic = PUBLIC_PATHS.has(pathname);
 
   if (process.env.NEXT_PUBLIC_DATA_SOURCE !== "supabase") {
-    const authed = await verifySessionToken(request.cookies.get(ADMIN_COOKIE)?.value);
-    if (!authed && !isLogin) return NextResponse.redirect(new URL(LOGIN_PATH, request.url));
+    const authed = Boolean(await verifySessionToken(request.cookies.get(ADMIN_COOKIE)?.value));
+    if (!authed && !isPublic) return NextResponse.redirect(new URL(LOGIN_PATH, request.url));
     return NextResponse.next();
   }
 
@@ -34,7 +36,7 @@ export async function middleware(request: NextRequest) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user && !isLogin) return NextResponse.redirect(new URL(LOGIN_PATH, request.url));
+  if (!user && !isPublic) return NextResponse.redirect(new URL(LOGIN_PATH, request.url));
   return response;
 }
 

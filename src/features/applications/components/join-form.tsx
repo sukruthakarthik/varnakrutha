@@ -20,6 +20,8 @@ const EMPTY: ApplicationFormValues = {
   sampleLinks: "",
   mediums: "",
   statement: "",
+  // Unticked until the applicant confirms; the schema only accepts true.
+  originalWork: false,
   company: "",
 };
 
@@ -132,6 +134,30 @@ export function JoinForm() {
           {...register("statement")}
         />
       </Field>
+
+      <div className="space-y-1.5">
+        <label className="flex items-start gap-3 text-sm">
+          <input
+            type="checkbox"
+            className="mt-0.5 size-4 shrink-0 accent-[var(--color-primary)]"
+            aria-invalid={!!errors.originalWork}
+            aria-describedby={errors.originalWork ? "originalWork-error" : undefined}
+            {...register("originalWork")}
+          />
+          <span>
+            The work I share is my own original work, and I have the right to show and sell it. I&apos;ve read the{" "}
+            <Link href="/copyright" target="_blank" className="underline underline-offset-4 hover:text-primary">
+              Copyright &amp; Disclaimer
+            </Link>
+            .
+          </span>
+        </label>
+        {errors.originalWork && (
+          <p id="originalWork-error" role="alert" className="text-sm text-destructive">
+            {errors.originalWork.message}
+          </p>
+        )}
+      </div>
 
       <p className="text-xs text-muted-foreground">
         Your details are used only to review your application and reply to you. See the{" "}

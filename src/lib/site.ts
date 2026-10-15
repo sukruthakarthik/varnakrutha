@@ -13,6 +13,7 @@ export const siteConfig = {
   nav: [
     { href: "/", label: "Home" },
     { href: "/gallery", label: "Gallery" },
+    { href: "/artists", label: "Artists" },
     { href: "/about", label: "About" },
     { href: "/contact", label: "Contact" },
   ],
@@ -38,4 +39,16 @@ export function whatsappUrl(message?: string): string | null {
   if (!siteConfig.whatsappNumber) return null;
   const query = message ? `?text=${encodeURIComponent(message)}` : "";
   return `https://wa.me/${siteConfig.whatsappNumber}${query}`;
+}
+
+/** Every approved artist has a portfolio page, including the site's own artist. */
+export function artistPath(artistSlug: string): string {
+  return `/artists/${artistSlug}`;
+}
+
+/** The site's own artist keeps the short /artworks/<slug> URLs; other artists' slugs are only unique per artist. */
+export function artworkPath(artworkSlug: string, artistSlug: string): string {
+  return artistSlug === siteConfig.defaultArtistSlug
+    ? `/artworks/${artworkSlug}`
+    : `/artists/${artistSlug}/artworks/${artworkSlug}`;
 }

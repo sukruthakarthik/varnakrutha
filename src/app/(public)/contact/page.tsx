@@ -4,7 +4,7 @@ import { SectionHeading } from "@/components/common/section-heading";
 import { SocialLinks } from "@/components/common/social-links";
 import { ContactForm } from "@/features/inquiries/components/contact-form";
 import { defaultOpenGraph, siteConfig, whatsappUrl } from "@/lib/site";
-import { getCurrentArtist, getPublicDataSource } from "@/services";
+import { getCurrentArtist, getPublicDataSource, getPublishedArtist } from "@/services";
 
 export const metadata: Metadata = {
   title: "Contact",
@@ -13,15 +13,26 @@ export const metadata: Metadata = {
   openGraph: { ...defaultOpenGraph, url: "/contact", title: "Contact | Art By Sukrutha" },
 };
 
-type Props = { searchParams: Promise<{ artwork?: string | string[] }> };
+type Props = { searchParams: Promise<{ artwork?: string | string[]; artist?: string | string[] }> };
 
 export default async function ContactPage({ searchParams }: Props) {
-  const { artwork: artworkParam } = await searchParams;
-  const artist = await getCurrentArtist();
+  const { artwork: artworkParam, artist: artistParam } = await searchParams;
+  // ?artist=<slug> enquires about another (approved) artist's work; otherwise the site's own artist.
+  const featured = typeof artistParam === "string" ? await getPublishedArtist(artistParam) : null;
+  const siteArtist = await getCurrentArtist();
+  const artist = featured ?? siteArtist;
+  const isOtherArtist = artist.id !== siteArtist.id;
   const slug = typeof artworkParam === "string" ? artworkParam : undefined;
   const artwork = slug ? await (await getPublicDataSource()).artworks.getBySlug(slug, artist.id) : null;
+  // The WhatsApp number is the site owner's, so other artists are named rather than greeted.
   const whatsapp = whatsappUrl(
-    artwork ? `Hi ${artist.name}, I'm interested in "${artwork.title}".` : `Hi ${artist.name}, `,
+    isOtherArtist
+      ? artwork
+        ? `Hi, I'm interested in "${artwork.title}" by ${artist.name}.`
+        : `Hi, I'd like to ask about ${artist.name}'s work. `
+      : artwork
+        ? `Hi ${artist.name}, I'm interested in "${artwork.title}".`
+        : `Hi ${artist.name}, `,
   );
 
   return (
@@ -30,8 +41,12 @@ export default async function ContactPage({ searchParams }: Props) {
         <SectionHeading
           as="h1"
           eyebrow="Get in touch"
-          title="Contact the Artist"
-          description="For purchase enquiries, commissions, collaborations or exhibitions — I'd love to hear from you."
+          title={isOtherArtist ? `Enquire about ${artist.name}'s work` : "Contact the Artist"}
+          description={
+            isOtherArtist
+              ? `For purchase enquiries or commissions with ${artist.name}. We'll put you in touch.`
+              : "For purchase enquiries, commissions, collaborations or exhibitions — I'd love to hear from you."
+          }
         />
         {(whatsapp || siteConfig.contactEmail) && (
           <ul className="space-y-3">
@@ -59,7 +74,10 @@ export default async function ContactPage({ searchParams }: Props) {
             Enquiring about <strong className="font-medium">{artwork.title}</strong>
           </p>
         )}
-        <ContactForm artwork={artwork ? { id: artwork.id, title: artwork.title } : null} />
+        <ContactForm
+          artwork={artwork ? { id: artwork.id, title: artwork.title } : null}
+          artist={isOtherArtist ? { id: artist.id, name: artist.name } : null}
+        />
       </div>
     </div>
   );

@@ -31,6 +31,8 @@ export interface ArtistApplication {
   status: ApplicationStatus;
   /** Private to platform admins. */
   adminNote: string | null;
+  /** The artist created when the application was accepted. */
+  artistId: string | null;
   createdAt: string;
 }
 
@@ -111,4 +113,6 @@ export interface Inquiry {
 
 export interface InquiryWithArtwork extends Inquiry {
   artwork: Pick<Artwork, "id" | "title" | "slug"> | null;
+  /** Who the enquiry is about; inquiries for every artist are handled by admins. */
+  artist: Pick<Artist, "name" | "slug"> | null;
 }

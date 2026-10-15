@@ -4,7 +4,7 @@ import { siteConfig } from "@/lib/site";
 import { isSupabase } from "@/lib/env";
 import { createMockDataSource } from "@/services/mock";
 import type { DataSource } from "@/services/types";
-import type { Artist } from "@/types";
+import type { Artist, Artwork } from "@/types";
 
 let mockSource: DataSource | undefined;
 
@@ -40,4 +40,27 @@ export const getCurrentArtist = cache(async (): Promise<Artist> => {
     throw new Error(`Artist "${siteConfig.defaultArtistSlug}" not found. Did you run the seed?`);
   }
   return artist;
+});
+
+// ─── Guests see approved artists only ───────────────────────────────
+
+/** Artists whose profile an admin has approved, by name. */
+export const getPublishedArtists = cache(async (): Promise<Artist[]> => {
+  const artists = await (await getPublicDataSource()).artists.list();
+  return artists.filter((a) => a.approvedAt);
+});
+
+export const getPublishedArtist = cache(async (slug: string): Promise<Artist | null> => {
+  const artist = await (await getPublicDataSource()).artists.getBySlug(slug);
+  return artist?.approvedAt ? artist : null;
+});
+
+/** Every approved artist's artworks, newest first. (Supabase RLS enforces the same rule.) */
+export const getPublishedArtworks = cache(async (): Promise<Artwork[]> => {
+  const [artists, artworks] = await Promise.all([
+    getPublishedArtists(),
+    getPublicDataSource().then((ds) => ds.artworks.list()),
+  ]);
+  const published = new Set(artists.map((a) => a.id));
+  return artworks.filter((a) => published.has(a.artistId));
 });

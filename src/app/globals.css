@@ -88,6 +88,12 @@
     font-variant-numeric: lining-nums;
     letter-spacing: -0.01em;
   }
+  /* Artwork images can't be selected, dragged out, or saved from the phone long-press menu. */
+  img {
+    -webkit-user-drag: none;
+    -webkit-touch-callout: none;
+    user-select: none;
+  }
   ::selection {
     background: var(--color-primary);
     color: var(--color-primary-foreground);

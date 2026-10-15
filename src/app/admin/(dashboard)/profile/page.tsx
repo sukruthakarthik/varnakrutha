@@ -3,6 +3,7 @@ import { Clock, ExternalLink, EyeOff } from "lucide-react";
 import { ProfileForm } from "@/features/admin/components/profile-form";
 import { updateArtistProfile, uploadProfileImage } from "@/features/artists/actions";
 import { requireAdminPage } from "@/lib/auth";
+import { artistPath, siteConfig } from "@/lib/site";
 import { formatDate } from "@/utils/format";
 
 export const metadata = { title: "Profile" };
@@ -17,8 +18,12 @@ export default async function ProfilePage() {
       <div className="flex flex-wrap items-center justify-between gap-4">
         <h1 className="text-4xl">Profile</h1>
         {artist.approvedAt && (
-          <Link href="/about" target="_blank" className="inline-flex items-center gap-2 text-sm text-primary hover:underline">
-            View About page <ExternalLink className="size-4" aria-hidden />
+          <Link
+            href={artist.slug === siteConfig.defaultArtistSlug ? "/about" : artistPath(artist.slug)}
+            target="_blank"
+            className="inline-flex items-center gap-2 text-sm text-primary hover:underline"
+          >
+            View public page <ExternalLink className="size-4" aria-hidden />
           </Link>
         )}
       </div>

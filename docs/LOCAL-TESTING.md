@@ -84,10 +84,11 @@ Use mock mode for everyday testing. To start over with fresh sample data, stop t
 | Artworks | Add, edit and delete an artwork; upload images; set the cover; mark as sold |
 | Inquiries | Your test message from `/contact` appears |
 | Profile | Edit the tagline (watch the 80-character counter), photo, bio and techniques; save, then check `/` and `/about` |
-| Applications | Your test application from `/join` appears; try Shortlist, Accept, a note and Email |
+| Applications | Your test application from `/join` appears; try Shortlist, a note and Email. **Accept** creates the artist and shows a one-time password (mock mode) |
+| Artist login | Sign out, then sign in with the accepted applicant's email and that password. You should see only Dashboard, Artworks and Profile, and only that artist's artworks. Their work stays off `/gallery` and `/artists` until you approve their profile under Reviews |
 | Reviews | Empty in mock mode (see below) |
 
-**Mock mode limitation:** the mock admin counts as a platform admin, so profile changes publish immediately and never reach Reviews. Testing the review flow needs Supabase and a second, non-platform-admin login.
+**Mock mode:** sign in with the email field blank and `ADMIN_PASSWORD` to act as the admin. Profile changes the admin makes publish immediately. An artist account (from accepting an application) submits its profile changes to Reviews, so you can test the whole review flow locally.
 
 ### Phone layout
 

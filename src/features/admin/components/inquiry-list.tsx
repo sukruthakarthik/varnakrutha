@@ -9,6 +9,7 @@ import { EmptyState } from "@/components/common/empty-state";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { deleteInquiry, setInquiryStatus } from "@/features/inquiries/admin-actions";
+import { artworkPath, siteConfig } from "@/lib/site";
 import { cn } from "@/lib/utils";
 import { INQUIRY_STATUS, type InquiryStatus, type InquiryWithArtwork } from "@/types";
 import { formatDate } from "@/utils/format";
@@ -86,12 +87,21 @@ export function InquiryList({ initialData }: { initialData: InquiryWithArtwork[]
                       </>
                     )}
                   </p>
-                  {i.artwork && (
+                  {(i.artwork || i.artist) && (
                     <p className="text-xs">
                       Re:{" "}
-                      <Link href={`/artworks/${i.artwork.slug}`} target="_blank" className="text-primary hover:underline">
-                        {i.artwork.title}
-                      </Link>
+                      {i.artwork ? (
+                        <Link
+                          href={artworkPath(i.artwork.slug, i.artist?.slug ?? siteConfig.defaultArtistSlug)}
+                          target="_blank"
+                          className="text-primary hover:underline"
+                        >
+                          {i.artwork.title}
+                        </Link>
+                      ) : (
+                        "their work"
+                      )}
+                      {i.artist && <span className="text-muted-foreground"> · {i.artist.name}</span>}
                     </p>
                   )}
                 </div>

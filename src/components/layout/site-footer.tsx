@@ -53,7 +53,12 @@ export function SiteFooter({ artist }: { artist: Artist }) {
       </p>
       <div className="border-t border-border">
         <p className="container-page py-6 text-xs text-muted-foreground">
-          © {new Date().getFullYear()} {artist.name}. All artworks are original and protected by copyright.{" "}
+          © {new Date().getFullYear()} {siteConfig.name}. Every artwork is © its artist; please don&apos;t copy or reproduce it
+          without permission. We aren&apos;t responsible for unauthorised copies.{" "}
+          <Link href="/copyright" className="underline-offset-4 hover:text-primary hover:underline">
+            Copyright &amp; Disclaimer
+          </Link>
+          {" · "}
           <Link href="/privacy" className="underline-offset-4 hover:text-primary hover:underline">
             Privacy Policy
           </Link>

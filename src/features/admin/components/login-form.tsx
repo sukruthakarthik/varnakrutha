@@ -9,17 +9,22 @@ import { signIn, type SignInState } from "../auth-actions";
 
 const initialState: SignInState = { error: null };
 
-export function LoginForm({ withEmail }: { withEmail: boolean }) {
+/**
+ * "email": Supabase accounts (admins and artists).
+ * "mock": local testing; leave the email blank for the site admin's password, or use an artist's email.
+ */
+export function LoginForm({ mode }: { mode: "email" | "mock" }) {
   const [state, formAction, pending] = useActionState(signIn, initialState);
 
   return (
     <form action={formAction} className="space-y-5">
-      {withEmail && (
-        <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
-          <Input id="email" name="email" type="email" autoComplete="username" required />
-        </div>
-      )}
+      <div className="space-y-2">
+        <Label htmlFor="email">Email</Label>
+        <Input id="email" name="email" type="email" autoComplete="username" required={mode === "email"} />
+        {mode === "mock" && (
+          <p className="text-xs text-muted-foreground">Artists: your email. Site admin: leave blank.</p>
+        )}
+      </div>
       <div className="space-y-2">
         <Label htmlFor="password">Password</Label>
         <Input id="password" name="password" type="password" autoComplete="current-password" required />

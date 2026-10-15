@@ -23,8 +23,8 @@ The data layer is already built for many artists:
 | **Database** | Every artwork and inquiry has an `artist_id`; About content (journey, inspiration, skills, techniques) and profile photo are per-artist, edited at `/admin/profile` | Per-artist tagline, contact email, theme colour, plan |
 | **Security (RLS)** | Artists edit only their own data and read only their own inquiries | Nothing more needed |
 | **Storage** | Separate folder per artist | Per-artist limits (e.g. Free = 20 artworks) |
-| **Public site** | Hard-wired to one artist through an env var | `/artists/[artist]` routes that resolve the artist from the URL |
-| **Admin** | Works for one fixed artist | Resolves the artist from the logged-in user's membership, with an artist switcher if they manage several |
+| **Public site** | Home and About belong to the site's own artist (env var); `/artists`, `/artists/[artist]` and `/gallery` show every approved artist | Per-artist home pages and branding |
+| **Admin** | Resolves the artist from the logged-in user's membership; roles `admin` and `artist` | An artist switcher for users who manage several |
 | **Sign-up** | None; users are created by hand in Supabase | Self sign-up, email verification, onboarding wizard |
 | **Platform control** | Platform admins (`platform_admins`) review profile changes at `/admin/reviews` and artist applications at `/admin/applications` | Suspend and feature artists; platform stats |
 | **Discovery** | None | "Artists" directory page; later a platform-wide gallery and search |
@@ -66,7 +66,7 @@ flowchart LR
 2. **Invite-only onboarding**
    - you invite an artist by email; they set a password and complete the onboarding wizard
    - safest start: no spam, and you control quality
-   - **Built:** artists apply at `/join` (links to their work, no uploads); platform admins triage at `/admin/applications`. **Next:** "Accept" should create the artist record and send the invite, which needs the Supabase service role key on the server.
+   - **Built:** artists apply at `/join` (links to their work, no uploads); platform admins triage at `/admin/applications`. **Built:** "Accept" creates the artist and their login, and Supabase emails an invitation to choose a password. Artists (role `artist`) manage only their own artworks and submit their profile for review; admins (role `admin`, in `platform_admins`) also handle reviews, applications and every inquiry. Approved artists appear at `/artists` and `/artists/<slug>`, and their work is in `/gallery`.
 3. **Super-admin panel**
    - list, approve, suspend and feature artists
    - platform stats

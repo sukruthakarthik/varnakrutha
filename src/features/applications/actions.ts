@@ -79,7 +79,7 @@ export async function updateApplication(values: z.input<typeof updateSchema>): P
     const current = (await admin.dataSource.applications.list()).find((a) => a.id === id);
     if (!current) return { ok: false, error: "Application not found" };
     // Spam is set and cleared with markApplicationSpam / markApplicationNotSpam, which also manage the block list.
-    if (update.status === "spam" || (current.status === "spam" && update.status !== "spam")) {
+    if (update.status === "spam" || current.status === "spam") {
       return { ok: false, error: "Use Mark as spam or Not spam for this." };
     }
     // Acceptance creates an account, so it only happens through acceptApplication, and can't be undone here.

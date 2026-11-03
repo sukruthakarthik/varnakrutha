@@ -13,7 +13,7 @@ export const metadata: Metadata = {
   openGraph: { ...defaultOpenGraph, url: "/privacy", title: `Privacy Policy | ${siteConfig.name}` },
 };
 
-const LAST_UPDATED = "6 October 2026";
+const LAST_UPDATED = "29 October 2026";
 
 export default async function PrivacyPage() {
   const artist = await getCurrentArtist();
@@ -53,6 +53,11 @@ export default async function PrivacyPage() {
             work, and what they write about themselves.
           </p>
           <p className="mt-3">
+            When you buy or reserve a painting, we also collect your delivery address and keep a record of the
+            order and its payment (amount, date and payment reference). We never see or store your card or bank
+            details: online payments are handled by our payment provider.
+          </p>
+          <p className="mt-3">
             We do not use advertising or tracking cookies. Browsing the gallery does not require you to share
             any personal details.
           </p>
@@ -62,15 +67,16 @@ export default async function PrivacyPage() {
           <h2>How we use it</h2>
           <p>
             Only to reply to your message and, if you go ahead, to arrange a purchase, commission or
-            delivery. Artist applications are used only to review the application and reply to the artist. We do not sell your details, share them for marketing, or add you to a mailing list.
+            delivery. When you buy a featured artist&apos;s painting, we share your name, contact details and
+            delivery address with that artist after your payment, so they can deliver it. Artist applications are used only to review the application and reply to the artist. We do not sell your details, share them for marketing, or add you to a mailing list.
           </p>
         </section>
 
         <section>
           <h2>Where it is stored</h2>
           <p>
-            Messages are stored securely with our database provider, Supabase. The website is hosted by
-            Vercel. These providers process data on our behalf and only as needed to run the site.
+            Messages and orders are stored securely with our database provider, Supabase. The website is hosted
+            by Vercel. Online payments are processed by Razorpay, when enabled. These providers process data on our behalf and only as needed to run the site.
           </p>
         </section>
 
@@ -78,7 +84,13 @@ export default async function PrivacyPage() {
           <h2>How long we keep it</h2>
           <p>
             We keep your message only as long as needed to respond and to keep records of any sale, and then
-            delete it. Artist applications that are not accepted are deleted once they have been answered.
+            delete it. Order and payment records are kept for as long as tax law requires (typically eight
+            years). Artist applications that are not accepted are deleted once they have been answered.
+          </p>
+          <p>
+            Messages and applications we identify as spam or abuse are kept for up to 12 months, and the email
+            address they came from is added to a block list, so we can stop repeat spam. If you think your
+            address was blocked by mistake, contact us and we will remove it.
           </p>
         </section>
 

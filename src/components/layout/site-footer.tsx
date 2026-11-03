@@ -60,6 +60,10 @@ export function SiteFooter({ artist }: { artist: Artist }) {
             Copyright &amp; Disclaimer
           </Link>
           {" · "}
+          <Link href="/terms" className="underline-offset-4 hover:text-primary hover:underline">
+            Terms of Sale
+          </Link>
+          {" · "}
           <Link href="/privacy" className="underline-offset-4 hover:text-primary hover:underline">
             Privacy Policy
           </Link>

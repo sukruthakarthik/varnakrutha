@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { actionError, type ActionResult } from "@/lib/action-result";
 import { requireAdminAction } from "@/lib/auth";
+import { artworkHasOpenOrder } from "@/services/orders";
 import { AVAILABILITY, CATEGORIES, type Artwork, type Availability } from "@/types";
 import { artworkInputSchema, type ArtworkFormValues } from "./schemas";
 
@@ -13,6 +14,9 @@ const slugSchema = z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/).max(80);
 function revalidatePublic() {
   revalidatePath("/", "layout");
 }
+
+const OPEN_ORDER_MESSAGE =
+  "This painting has an open order (someone is paying or it's awaiting delivery). Wait until it's completed or cancelled.";
 
 async function assertOwnership(id: string) {
   const admin = await requireAdminAction();
@@ -47,6 +51,8 @@ export async function updateArtwork(
 ): Promise<ActionResult<{ id: string }>> {
   try {
     const { admin } = await assertOwnership(id);
+    // The order's amounts were fixed at checkout; changing price or details mid-sale would confuse the buyer.
+    if (await artworkHasOpenOrder(id)) return { ok: false, error: OPEN_ORDER_MESSAGE };
     const parsed = artworkInputSchema.safeParse(values);
     if (!parsed.success) {
       return { ok: false, error: "Invalid artwork details", fieldErrors: parsed.error.flatten().fieldErrors };
@@ -65,6 +71,7 @@ export async function setArtworkAvailability(
 ): Promise<ActionResult> {
   try {
     const { admin } = await assertOwnership(id);
+    if (await artworkHasOpenOrder(id)) return { ok: false, error: OPEN_ORDER_MESSAGE };
     await admin.dataSource.artworks.setAvailability(id, z.enum(AVAILABILITY).parse(availability));
     revalidatePublic();
     return { ok: true, data: undefined };
@@ -76,6 +83,7 @@ export async function setArtworkAvailability(
 export async function deleteArtwork(id: string): Promise<ActionResult> {
   try {
     const { admin } = await assertOwnership(id);
+    if (await artworkHasOpenOrder(id)) return { ok: false, error: OPEN_ORDER_MESSAGE };
     await admin.dataSource.artworks.delete(id);
     revalidatePublic();
     return { ok: true, data: undefined };

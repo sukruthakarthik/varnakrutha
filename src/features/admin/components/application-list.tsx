@@ -2,13 +2,19 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Check, Copy, ExternalLink, KeyRound, Mail, Phone, Star, Trash2, UserPlus, X } from "lucide-react";
+import { Ban, Check, Copy, ExternalLink, KeyRound, Mail, Phone, RotateCcw, Star, Trash2, UserPlus, X } from "lucide-react";
 import { toast } from "sonner";
 import { EmptyState } from "@/components/common/empty-state";
 import { Badge, type BadgeProps } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/input";
-import { acceptApplication, deleteApplication, updateApplication } from "@/features/applications/actions";
+import {
+  acceptApplication,
+  deleteApplication,
+  markApplicationNotSpam,
+  markApplicationSpam,
+  updateApplication,
+} from "@/features/applications/actions";
 import { APPLICATION_REPLY_DAYS } from "@/lib/constants";
 import { siteConfig } from "@/lib/site";
 import { cn } from "@/lib/utils";
@@ -21,6 +27,7 @@ const STATUS_META: Record<ApplicationStatus, { label: string; variant: BadgeProp
   shortlisted: { label: "Shortlisted", variant: "warning" },
   accepted: { label: "Accepted", variant: "success" },
   declined: { label: "Declined", variant: "muted" },
+  spam: { label: "Spam", variant: "muted" },
 };
 
 const EMAIL_SUBJECT = `Your application to ${siteConfig.name}`;
@@ -49,7 +56,9 @@ function daysWaiting(a: ArtistApplication): number | null {
 
 export function ApplicationList({ applications }: { applications: ArtistApplication[] }) {
   const [filter, setFilter] = useState<ApplicationStatus | "all">("all");
-  const visible = filter === "all" ? applications : applications.filter((a) => a.status === filter);
+  // "All" leaves out spam, which has its own tab.
+  const active = applications.filter((a) => a.status !== "spam");
+  const visible = filter === "all" ? active : applications.filter((a) => a.status === filter);
   const waiting = applications.map(daysWaiting).filter((d): d is number => d !== null);
   const overdue = waiting.filter((d) => d >= APPLICATION_REPLY_DAYS).length;
   const dueSoon = waiting.filter((d) => d >= DUE_SOON_DAYS && d < APPLICATION_REPLY_DAYS).length;
@@ -88,7 +97,7 @@ export function ApplicationList({ applications }: { applications: ArtistApplicat
             onClick={() => setFilter(s)}
           >
             {s === "all" ? "All" : STATUS_META[s].label} (
-            {s === "all" ? applications.length : applications.filter((a) => a.status === s).length})
+            {s === "all" ? active.length : applications.filter((a) => a.status === s).length})
           </Button>
         ))}
       </div>
@@ -150,15 +159,16 @@ function ApplicationCard({ application: a, sameEmailCount }: { application: Arti
     router.refresh();
   }
 
-  async function handleDelete() {
-    const res = await deleteApplication(a.id);
+  async function run(action: () => Promise<{ ok: true } | { ok: false; error: string }>, message: string) {
+    const res = await action();
     if (!res.ok) {
       toast.error(res.error);
       return;
     }
-    toast.success("Application deleted");
+    toast.success(message);
     router.refresh();
   }
+
 
   const mailto = `mailto:${a.email}?subject=${encodeURIComponent(EMAIL_SUBJECT)}&body=${encodeURIComponent(replyBody(a))}`;
 
@@ -243,46 +253,71 @@ function ApplicationCard({ application: a, sameEmailCount }: { application: Arti
       )}
 
       <div className="mt-4 flex flex-wrap gap-2">
-        <Button asChild size="sm" variant="outline">
-          <a href={mailto}>
-            <Mail aria-hidden /> Email
-          </a>
-        </Button>
-        {a.status !== "shortlisted" && a.status !== "accepted" && (
-          <Button size="sm" variant="ghost" disabled={pending} onClick={() => save("shortlisted", "Shortlisted")}>
-            <Star aria-hidden /> Shortlist
+        {a.status === "spam" ? (
+          <Button size="sm" variant="ghost" disabled={pending} onClick={() => run(() => markApplicationNotSpam(a.id), "Restored to New; email unblocked")}>
+            <RotateCcw aria-hidden /> Not spam
           </Button>
+        ) : (
+          <>
+            <Button asChild size="sm" variant="outline">
+              <a href={mailto}>
+                <Mail aria-hidden /> Email
+              </a>
+            </Button>
+            {a.status !== "shortlisted" && a.status !== "accepted" && (
+              <Button size="sm" variant="ghost" disabled={pending} onClick={() => save("shortlisted", "Shortlisted")}>
+                <Star aria-hidden /> Shortlist
+              </Button>
+            )}
+            {/* Also offered for applications accepted before accepting created accounts, which have no artist yet. */}
+            {!a.artistId && (
+              <ConfirmDialog
+                title={a.status === "accepted" ? `Create ${a.name}'s account?` : `Accept ${a.name}?`}
+                description={`This creates an artist account for ${a.email}. They can add and edit only their own artworks, and their page goes live once you approve their profile.`}
+                confirmLabel={a.status === "accepted" ? "Create account" : "Accept and create account"}
+                confirmVariant="default"
+                onConfirm={handleAccept}
+                trigger={
+                  <Button size="sm" variant="ghost" disabled={pending}>
+                    <Check aria-hidden /> {a.status === "accepted" ? "Create account" : "Accept"}
+                  </Button>
+                }
+              />
+            )}
+            {a.status !== "declined" && a.status !== "accepted" && (
+              <Button size="sm" variant="ghost" disabled={pending} onClick={() => save("declined", "Declined. Remember to let them know.")}>
+                <X aria-hidden /> Decline
+              </Button>
+            )}
+            {!a.artistId && (
+              <ConfirmDialog
+                title="Mark as spam?"
+                description={`The application moves to Spam (you can restore it), and anything else from ${a.email} goes straight to Spam.`}
+                confirmLabel="Mark as spam"
+                onConfirm={() => run(() => markApplicationSpam(a.id), "Marked as spam; email blocked")}
+                trigger={
+                  <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive">
+                    <Ban aria-hidden /> Mark as spam
+                  </Button>
+                }
+              />
+            )}
+          </>
         )}
-        {/* Also offered for applications accepted before accepting created accounts, which have no artist yet. */}
-        {!a.artistId && (
+        {/* Permanent: spam, and declined applications once answered (as the Privacy Policy promises). */}
+        {(a.status === "spam" || a.status === "declined") && (
           <ConfirmDialog
-            title={a.status === "accepted" ? `Create ${a.name}'s account?` : `Accept ${a.name}?`}
-            description={`This creates an artist account for ${a.email}. They can add and edit only their own artworks, and their page goes live once you approve their profile.`}
-            confirmLabel={a.status === "accepted" ? "Create account" : "Accept and create account"}
-            confirmVariant="default"
-            onConfirm={handleAccept}
+            title="Delete permanently?"
+            description={`The application from ${a.name} will be deleted for good. This can't be undone.`}
+            confirmLabel="Delete permanently"
+            onConfirm={() => run(() => deleteApplication(a.id), "Deleted permanently")}
             trigger={
-              <Button size="sm" variant="ghost" disabled={pending}>
-                <Check aria-hidden /> {a.status === "accepted" ? "Create account" : "Accept"}
+              <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive">
+                <Trash2 aria-hidden /> Delete permanently
               </Button>
             }
           />
         )}
-        {a.status !== "declined" && (
-          <Button size="sm" variant="ghost" disabled={pending} onClick={() => save("declined", "Declined. Remember to let them know.")}>
-            <X aria-hidden /> Decline
-          </Button>
-        )}
-        <ConfirmDialog
-          title="Delete application?"
-          description={`The application from ${a.name} will be permanently deleted.`}
-          onConfirm={handleDelete}
-          trigger={
-            <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive">
-              <Trash2 aria-hidden /> Delete
-            </Button>
-          }
-        />
       </div>
     </li>
   );

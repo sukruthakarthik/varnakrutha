@@ -65,6 +65,8 @@ interface ProfileFormProps {
   redirectTo?: string;
   /** Extra controls under the save button, e.g. discarding a submission. */
   actions?: React.ReactNode;
+  /** False for featured artists, whose links are kept private rather than shown on their page. */
+  linksArePublic?: boolean;
 }
 
 export function ProfileForm({
@@ -76,6 +78,7 @@ export function ProfileForm({
   allowUnchanged,
   redirectTo,
   actions,
+  linksArePublic = true,
 }: ProfileFormProps) {
   const router = useRouter();
 
@@ -240,7 +243,11 @@ export function ProfileForm({
         <Card>
           <CardHeader>
             <CardTitle>Social links</CardTitle>
-            <CardDescription>Leave blank to hide.</CardDescription>
+            <CardDescription>
+              {linksArePublic
+                ? "Leave blank to hide."
+                : "Kept private: seen only by the Varnakrutha team, not shown on your page. Buyers reach you through enquiries on the site."}
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-5">
             {SOCIAL_FIELDS.map(({ name, label, placeholder }) => (

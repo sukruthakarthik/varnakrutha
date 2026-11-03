@@ -1,6 +1,7 @@
 import { AdminSidebar } from "@/features/admin/components/admin-sidebar";
 import { requireAdminPage } from "@/lib/auth";
 import { isSupabase } from "@/lib/env";
+import { paymentsConfig } from "@/lib/payments/config";
 import type { DataSource } from "@/services/types";
 
 async function getPlatformCounts(ds: DataSource) {
@@ -18,6 +19,7 @@ export default async function AdminDashboardLayout({ children }: { children: Rea
         role={admin.role}
         platformCounts={platformCounts}
         canChangePassword={isSupabase}
+        showOrders={paymentsConfig.mode !== "off"}
       />
       <main className="min-w-0 flex-1 p-4 md:p-10">{children}</main>
     </div>

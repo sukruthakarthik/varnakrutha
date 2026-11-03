@@ -63,3 +63,11 @@ export function artistFirstName(name: string): string {
 export function artistBrand(name: string): string {
   return `Art by ${artistFirstName(name)}`;
 }
+
+/**
+ * Whether this is the site's own artist. Only they show social links publicly: for featured artists,
+ * buyers go through Varnakrutha's enquiries, so sales aren't arranged around the platform.
+ */
+export function isSiteArtist(artistSlug: string): boolean {
+  return artistSlug === siteConfig.defaultArtistSlug;
+}

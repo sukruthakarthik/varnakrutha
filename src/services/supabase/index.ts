@@ -72,6 +72,7 @@ interface ArtworkRow {
   width: number | null;
   height: number | null;
   price: number | null;
+  shipping_fee: number | null;
   availability: Availability;
   featured: boolean;
   cover_image: string | null;
@@ -180,6 +181,7 @@ const toArtwork = (r: ArtworkRow): Artwork => ({
   width: r.width === null ? null : Number(r.width),
   height: r.height === null ? null : Number(r.height),
   price: r.price === null ? null : Number(r.price),
+  shippingFee: r.shipping_fee === null || r.shipping_fee === undefined ? null : Number(r.shipping_fee),
   availability: r.availability,
   featured: r.featured,
   coverImage: r.cover_image,
@@ -221,6 +223,7 @@ const toArtworkRow = (input: ArtworkInput) => ({
   width: input.width,
   height: input.height,
   price: input.price,
+  shipping_fee: input.shippingFee,
   availability: input.availability,
   featured: input.featured,
   cover_image: input.coverImage ?? input.images[0] ?? null,
@@ -489,6 +492,33 @@ export function createSupabaseDataSource(client: SupabaseClient): DataSource {
       },
       async delete(id) {
         fail((await client.from("artist_applications").delete().eq("id", id)).error);
+      },
+    },
+
+    blocklist: {
+      async list() {
+        const { data, error } = await client
+          .from("blocked_emails")
+          .select("email, reason, created_at")
+          .order("created_at", { ascending: false });
+        fail(error);
+        return ((data ?? []) as { email: string; reason: string | null; created_at: string }[]).map((r) => ({
+          email: r.email,
+          reason: r.reason,
+          createdAt: r.created_at,
+        }));
+      },
+      async block(email, reason) {
+        fail(
+          (
+            await client
+              .from("blocked_emails")
+              .upsert({ email: email.trim().toLowerCase(), reason }, { onConflict: "email", ignoreDuplicates: true })
+          ).error,
+        );
+      },
+      async unblock(email) {
+        fail((await client.from("blocked_emails").delete().eq("email", email.trim().toLowerCase())).error);
       },
     },
 

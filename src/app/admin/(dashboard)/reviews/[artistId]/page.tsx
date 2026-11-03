@@ -9,6 +9,7 @@ import { ProfileForm } from "@/features/admin/components/profile-form";
 import { approveArtistProfile, uploadArtistProfileImage } from "@/features/artists/actions";
 import { changedProfileFields } from "@/features/artists/review";
 import { requirePlatformAdminPage } from "@/lib/auth";
+import { isSiteArtist } from "@/lib/site";
 import { formatDate } from "@/utils/format";
 
 export const metadata = { title: "Review profile" };
@@ -71,6 +72,7 @@ export default async function ReviewProfilePage({ params }: Props) {
         upload={uploadArtistProfileImage.bind(null, artist.id)}
         submitLabel="Approve & publish"
         allowUnchanged
+        linksArePublic={isSiteArtist(artist.slug)}
         redirectTo="/admin/reviews"
         actions={<DiscardSubmissionButton artistId={artist.id} artistName={artist.name} />}
       />

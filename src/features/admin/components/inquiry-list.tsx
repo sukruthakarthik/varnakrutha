@@ -3,12 +3,12 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Archive, Inbox, Mail, MailOpen, Phone, Trash2 } from "lucide-react";
+import { Archive, Ban, Inbox, Mail, MailOpen, Phone, RotateCcw, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { EmptyState } from "@/components/common/empty-state";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { deleteInquiry, setInquiryStatus } from "@/features/inquiries/admin-actions";
+import { deleteInquiry, markInquiryNotSpam, markInquirySpam, setInquiryStatus } from "@/features/inquiries/admin-actions";
 import { artworkPath, siteConfig } from "@/lib/site";
 import { cn } from "@/lib/utils";
 import { INQUIRY_STATUS, type InquiryStatus, type InquiryWithArtwork } from "@/types";
@@ -16,7 +16,7 @@ import { formatDate } from "@/utils/format";
 import { adminKeys, useAdminInquiries } from "../hooks";
 import { ConfirmDialog } from "./confirm-dialog";
 
-const STATUS_LABEL: Record<InquiryStatus, string> = { new: "New", read: "Read", archived: "Archived" };
+const STATUS_LABEL: Record<InquiryStatus, string> = { new: "New", read: "Read", archived: "Archived", spam: "Spam" };
 
 export function InquiryList({ initialData }: { initialData: InquiryWithArtwork[] }) {
   const queryClient = useQueryClient();
@@ -32,17 +32,19 @@ export function InquiryList({ initialData }: { initialData: InquiryWithArtwork[]
     onSettled: () => queryClient.invalidateQueries({ queryKey: adminKeys.inquiries }),
   });
 
-  async function handleDelete(id: string) {
-    const res = await deleteInquiry(id);
+  async function run(action: () => Promise<{ ok: true } | { ok: false; error: string }>, message: string) {
+    const res = await action();
     if (!res.ok) {
       toast.error(res.error);
       return;
     }
-    toast.success("Inquiry deleted");
+    toast.success(message);
     await queryClient.invalidateQueries({ queryKey: adminKeys.inquiries });
   }
 
-  const visible = filter === "all" ? inquiries : inquiries.filter((i) => i.status === filter);
+  // "All" is the inbox: everything except spam, which has its own tab.
+  const inbox = inquiries.filter((i) => i.status !== "spam");
+  const visible = filter === "all" ? inbox : inquiries.filter((i) => i.status === filter);
 
   return (
     <div className="space-y-6">
@@ -56,13 +58,21 @@ export function InquiryList({ initialData }: { initialData: InquiryWithArtwork[]
             onClick={() => setFilter(s)}
           >
             {s === "all" ? "All" : STATUS_LABEL[s]} (
-            {s === "all" ? inquiries.length : inquiries.filter((i) => i.status === s).length})
+            {s === "all" ? inbox.length : inquiries.filter((i) => i.status === s).length})
           </Button>
         ))}
       </div>
 
       {visible.length === 0 ? (
-        <EmptyState icon={Inbox} title="No inquiries" description="Messages from the contact form will appear here." />
+        <EmptyState
+          icon={Inbox}
+          title={filter === "spam" ? "No spam" : "No inquiries"}
+          description={
+            filter === "spam"
+              ? "Enquiries you mark as spam, and anything new from blocked emails, appear here."
+              : "Messages from the contact form will appear here."
+          }
+        />
       ) : (
         <ul className="space-y-4">
           {visible.map((i) => (
@@ -111,31 +121,60 @@ export function InquiryList({ initialData }: { initialData: InquiryWithArtwork[]
               </div>
               <p className="mt-4 whitespace-pre-line text-sm leading-relaxed text-foreground/85">{i.message}</p>
               <div className="mt-4 flex flex-wrap gap-2">
-                <Button asChild size="sm" variant="outline">
-                  <a href={`mailto:${i.email}?subject=${encodeURIComponent(`Re: ${i.subject}`)}`}>
-                    <Mail aria-hidden /> Reply
-                  </a>
-                </Button>
-                {i.status !== "read" && (
-                  <Button size="sm" variant="ghost" onClick={() => statusMutation.mutate({ id: i.id, status: "read" })}>
-                    <MailOpen aria-hidden /> Mark read
+                {/* Replying to spam only confirms the address works. */}
+                {i.status !== "spam" && (
+                  <Button asChild size="sm" variant="outline">
+                    <a href={`mailto:${i.email}?subject=${encodeURIComponent(`Re: ${i.subject}`)}`}>
+                      <Mail aria-hidden /> Reply
+                    </a>
                   </Button>
                 )}
-                {i.status !== "archived" && (
-                  <Button size="sm" variant="ghost" onClick={() => statusMutation.mutate({ id: i.id, status: "archived" })}>
-                    <Archive aria-hidden /> Archive
+                {i.status === "spam" ? (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => run(() => markInquiryNotSpam(i.id), "Moved back to the inbox; sender unblocked")}
+                  >
+                    <RotateCcw aria-hidden /> Not spam
                   </Button>
+                ) : (
+                  <>
+                    {i.status !== "read" && (
+                      <Button size="sm" variant="ghost" onClick={() => statusMutation.mutate({ id: i.id, status: "read" })}>
+                        <MailOpen aria-hidden /> Mark read
+                      </Button>
+                    )}
+                    {i.status !== "archived" && (
+                      <Button size="sm" variant="ghost" onClick={() => statusMutation.mutate({ id: i.id, status: "archived" })}>
+                        <Archive aria-hidden /> Archive
+                      </Button>
+                    )}
+                    <ConfirmDialog
+                      title="Mark as spam?"
+                      description={`The message moves to Spam (you can restore it), and anything else from ${i.email} goes straight to Spam.`}
+                      confirmLabel="Mark as spam"
+                      onConfirm={() => run(() => markInquirySpam(i.id), "Marked as spam; sender blocked")}
+                      trigger={
+                        <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive">
+                          <Ban aria-hidden /> Mark as spam
+                        </Button>
+                      }
+                    />
+                  </>
                 )}
-                <ConfirmDialog
-                  title="Delete inquiry?"
-                  description={`The message from ${i.name} will be permanently deleted.`}
-                  onConfirm={() => handleDelete(i.id)}
-                  trigger={
-                    <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive">
-                      <Trash2 aria-hidden /> Delete
-                    </Button>
-                  }
-                />
+                {(i.status === "spam" || i.status === "archived") && (
+                  <ConfirmDialog
+                    title="Delete permanently?"
+                    description={`The message from ${i.name} will be deleted for good. This can't be undone.`}
+                    confirmLabel="Delete permanently"
+                    onConfirm={() => run(() => deleteInquiry(i.id), "Deleted permanently")}
+                    trigger={
+                      <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive">
+                        <Trash2 aria-hidden /> Delete permanently
+                      </Button>
+                    }
+                  />
+                )}
               </div>
             </li>
           ))}

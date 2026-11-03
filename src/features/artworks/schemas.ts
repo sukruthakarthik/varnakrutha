@@ -33,6 +33,11 @@ export const artworkInputSchema = z.object({
   width: optionalPositive,
   height: optionalPositive,
   price: optionalPositive,
+  /** Charged on top of the price for online orders; goes to the artist in full. Blank = free shipping. */
+  shippingFee: z
+    .union([z.number(), z.nan(), z.null()])
+    .transform((v) => (v === null || Number.isNaN(v) ? null : v))
+    .pipe(z.number().min(0).max(1_000_000).nullable()),
   availability: z.enum(AVAILABILITY),
   featured: z.boolean(),
   coverImage: z.string().trim().max(1000).nullable(),

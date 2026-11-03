@@ -54,6 +54,7 @@ In **mock mode**:
 | `NEXT_PUBLIC_DATA_SOURCE` | yes | `mock` or `supabase` |
 | `NEXT_PUBLIC_CONTACT_EMAIL` | no | Email shown on the Contact page and footer. Hidden when empty |
 | `NEXT_PUBLIC_WHATSAPP_NUMBER` | no | WhatsApp number, digits only with country code (e.g. `919876543210`). Adds a click-to-chat link; hidden when empty |
+| `NEXT_PUBLIC_PAYMENTS_MODE` | no | `off` (default), `manual` (UPI, confirmed by an admin) or `razorpay`. See [PAYMENTS.md](PAYMENTS.md) for this and the related `NEXT_PUBLIC_UPI_*`, `COMMISSION_RATE_BPS` and `RAZORPAY_*` settings |
 | `CRON_SECRET` | production | Random string that protects `/api/keep-alive`, the daily job that stops the free Supabase project from pausing |
 | `ADMIN_PASSWORD` | mock only | Admin password, 8 or more characters |
 | `ADMIN_SESSION_SECRET` | mock only | 32 or more random characters that sign the admin cookie. Generate one with `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"` |
@@ -182,3 +183,15 @@ scripts/                 Placeholder image generator
 ## Roadmap
 
 See [ROADMAP.md](ROADMAP.md) for the multi-artist platform plan, monetization, and paid alerts. Hosting steps are in [DEPLOYMENT.md](DEPLOYMENT.md).
+
+To remove spam applications, enquiries or artist accounts safely, see [MODERATION.md](MODERATION.md).
+
+The plan for online payments, commission splits and their corner cases is in [PAYMENTS.md](PAYMENTS.md). Payments are built but switched off; to turn them on, follow [PAYMENTS-LATER.md](PAYMENTS-LATER.md).
+
+**Lab (Admin → Lab):** a private area, visible only to admins, for personal study resources. Files are stored in the private Supabase bucket `lab` (created by `supabase/migrations/20261103000000_lab_storage.sql`), grouped into folders by subject. Artists and visitors can't see it.
+- **Interactive HTML pages** work: upload the `.html` file together with any CSS, script or image files it uses (select them all at once), and **Open** runs it. Single-file pages (everything inside the `.html`) are simplest.
+- **Open** gives a private link valid for 2 hours that covers that subject folder, so the page's own files load. The link works without signing in, so don't share it.
+- **Pages run sealed off from the site** (sandboxed), so they can't read the admin session, but also can't save progress in the browser (localStorage).
+- **Re-uploading** a file with the same name replaces it.
+- **Uploads through the admin** are limited to 4 MB per batch; upload bigger files (up to 50 MB) in Supabase → Storage → `lab`. Keep a page's files in one folder, with no sub-folders.
+- **Local mock mode** saves files in `.data/lab`.

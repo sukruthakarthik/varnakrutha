@@ -2,10 +2,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, Mail, ShoppingBag } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { BuyButton, type BuyQuote } from "@/features/orders/components/buy-button";
 import { CATEGORY_META } from "@/lib/constants";
+import { paymentsEnabled } from "@/lib/payments/config";
 import { absoluteUrl, artistPath, artworkPath, defaultOgImage, defaultOpenGraph, siteConfig } from "@/lib/site";
 import { cn } from "@/lib/utils";
 import { getPublicDataSource } from "@/services";
+import { getCheckoutQuote } from "@/services/orders";
 import type { Artist, Artwork } from "@/types";
 import { formatDimensions, formatPrice, truncate } from "@/utils/format";
 import { ArtworkCard } from "./components/artwork-card";
@@ -13,6 +16,21 @@ import { ArtworkImage } from "./components/artwork-image";
 import { ArtworkImageGallery } from "./components/artwork-image-gallery";
 import { AvailabilityBadge } from "./components/availability-badge";
 import { ViewOnWall } from "./components/view-on-wall";
+
+/** The buy/reserve offer for this artwork, or null when payments are off or it can't be bought online. */
+async function buyQuote(artwork: Artwork): Promise<BuyQuote | null> {
+  if (!paymentsEnabled || artwork.availability !== "available" || !artwork.price) return null;
+  try {
+    const quote = await getCheckoutQuote(artwork.id);
+    if (!quote || quote.unavailableReason) return null;
+    const { kind, pricePaise, shippingPaise, amountPaise, balanceToArtistPaise, artworkTitle, artistName } = quote;
+    return { kind, pricePaise, shippingPaise, amountPaise, balanceToArtistPaise, artworkTitle, artistName };
+  } catch (error) {
+    // E.g. payment settings missing: fall back to enquiries rather than breaking the page.
+    console.error("[payments] couldn't price artwork for checkout:", error);
+    return null;
+  }
+}
 
 export function artworkMetadata(artist: Artist, artwork: Artwork | null): Metadata {
   if (!artwork) return { title: "Artwork not found", robots: { index: false } };
@@ -39,7 +57,10 @@ export function artworkMetadata(artist: Artist, artwork: Artwork | null): Metada
 /** The full artwork page, shared by /artworks/<slug> (the site's own artist) and /artists/<artist>/artworks/<slug>. */
 export async function ArtworkDetail({ artist, artwork }: { artist: Artist; artwork: Artwork }) {
   const isOwnArtist = artist.slug === siteConfig.defaultArtistSlug;
-  const all = await (await getPublicDataSource()).artworks.list({ artistId: artist.id });
+  const [all, quote] = await Promise.all([
+    getPublicDataSource().then((ds) => ds.artworks.list({ artistId: artist.id })),
+    buyQuote(artwork),
+  ]);
   const related = all.filter((a) => a.category === artwork.category && a.id !== artwork.id).slice(0, 3);
   // Wraps around, so every work has a neighbour on both sides.
   const position = all.findIndex((a) => a.id === artwork.id);
@@ -129,9 +150,10 @@ export async function ArtworkDetail({ artist, artwork }: { artist: Artist; artwo
             ))}
           </dl>
 
+          {quote && <BuyButton artworkId={artwork.id} quote={quote} />}
           <div className="flex flex-col gap-3 sm:flex-row">
             {artwork.availability !== "sold" && (
-              <Button asChild size="lg" className="flex-1">
+              <Button asChild size="lg" variant={quote ? "outline" : "default"} className="flex-1">
                 <Link href={enquireHref}>
                   <ShoppingBag aria-hidden /> Enquire About Purchase
                 </Link>

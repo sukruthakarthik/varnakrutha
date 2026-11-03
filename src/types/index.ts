@@ -12,10 +12,12 @@ export type Category = (typeof CATEGORIES)[number];
 export const AVAILABILITY = ["available", "sold", "reserved"] as const;
 export type Availability = (typeof AVAILABILITY)[number];
 
-export const INQUIRY_STATUS = ["new", "read", "archived"] as const;
+/** "spam": kept but hidden from the inbox; the sender's email is blocked. */
+export const INQUIRY_STATUS = ["new", "read", "archived", "spam"] as const;
 export type InquiryStatus = (typeof INQUIRY_STATUS)[number];
 
-export const APPLICATION_STATUS = ["new", "shortlisted", "accepted", "declined"] as const;
+/** "spam": kept but hidden; the applicant's email is blocked. */
+export const APPLICATION_STATUS = ["new", "shortlisted", "accepted", "declined", "spam"] as const;
 export type ApplicationStatus = (typeof APPLICATION_STATUS)[number];
 
 export interface ArtistApplication {
@@ -91,6 +93,8 @@ export interface Artwork {
   /** Centimetres */
   height: number | null;
   price: number | null;
+  /** Rupees, added to the price for online orders; null = free shipping. */
+  shippingFee: number | null;
   availability: Availability;
   featured: boolean;
   coverImage: string | null;
@@ -115,4 +119,64 @@ export interface InquiryWithArtwork extends Inquiry {
   artwork: Pick<Artwork, "id" | "title" | "slug"> | null;
   /** Who the enquiry is about; inquiries for every artist are handled by admins. */
   artist: Pick<Artist, "name" | "slug"> | null;
+}
+
+/** An email whose enquiries and applications are filed as spam automatically. */
+export interface BlockedEmail {
+  email: string;
+  reason: string | null;
+  createdAt: string;
+}
+
+// ─── Orders and payments (see docs/PAYMENTS.md) ─────────────────────
+
+export const ORDER_STATUS = ["pending", "paid", "shipped", "completed", "cancelled", "refunded", "expired", "failed"] as const;
+export type OrderStatus = (typeof ORDER_STATUS)[number];
+
+/** Statuses that hold the artwork, so nobody else can buy it. */
+export const ACTIVE_ORDER_STATUS: OrderStatus[] = ["pending", "paid", "shipped"];
+
+/** "full": price + shipping paid now. "deposit": the commission paid now; the balance goes to the artist directly. */
+export type OrderKind = "full" | "deposit";
+export type OrderMethod = "upi_manual" | "razorpay" | "offline";
+
+export interface Order {
+  id: string;
+  reference: string;
+  /** Secret in the buyer's order link. Never send to artists or render outside the buyer's own page. */
+  accessToken: string;
+  artworkId: string | null;
+  artistId: string;
+  artworkTitle: string;
+  kind: OrderKind;
+  method: OrderMethod;
+  status: OrderStatus;
+  buyerName: string;
+  buyerEmail: string;
+  buyerPhone: string;
+  shippingAddress: string;
+  /** All amounts in paise. */
+  pricePaise: number;
+  shippingPaise: number;
+  amountPaise: number;
+  commissionBps: number;
+  commissionPaise: number;
+  artistSharePaise: number;
+  paymentReference: string | null;
+  razorpayOrderId: string | null;
+  razorpayTransferId: string | null;
+  tracking: string | null;
+  adminNote: string | null;
+  expiresAt: string | null;
+  paidAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface OrderEvent {
+  id: string;
+  orderId: string;
+  type: string;
+  detail: string | null;
+  createdAt: string;
 }

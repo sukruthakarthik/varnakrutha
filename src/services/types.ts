@@ -6,6 +6,7 @@ import type {
   ApplicationStatus,
   Artist,
   ArtistApplication,
+  BlockedEmail,
   Artwork,
   Availability,
   Category,
@@ -79,6 +80,14 @@ export interface ApplicationRepository {
   delete(id: string): Promise<void>;
 }
 
+/** Admin-only. Enquiries and applications from a blocked email are filed as spam (enforced in the database). */
+export interface BlocklistRepository {
+  list(): Promise<BlockedEmail[]>;
+  /** No-op if already blocked. */
+  block(email: string, reason: string | null): Promise<void>;
+  unblock(email: string): Promise<void>;
+}
+
 export interface UploadImageParams {
   artistSlug: string;
   category: Category;
@@ -104,6 +113,7 @@ export interface DataSource {
   artworks: ArtworkRepository;
   inquiries: InquiryRepository;
   applications: ApplicationRepository;
+  blocklist: BlocklistRepository;
   storage: StorageService;
 }
 

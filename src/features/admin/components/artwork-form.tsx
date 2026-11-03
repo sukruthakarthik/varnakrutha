@@ -33,6 +33,7 @@ function toFormValues(a?: Artwork): ArtworkFormValues {
     width: a?.width ?? null,
     height: a?.height ?? null,
     price: a?.price ?? null,
+    shippingFee: a?.shippingFee ?? null,
     availability: a?.availability ?? "available",
     featured: a?.featured ?? false,
     coverImage: a?.coverImage ?? null,
@@ -115,6 +116,9 @@ export function ArtworkForm({ artwork, artistSlug }: { artwork?: Artwork; artist
             </Field>
             <Field id="price" label="Price (INR, optional)" error={err("price")}>
               <Input id="price" type="number" min={0} step="any" {...register("price", { valueAsNumber: true })} />
+            </Field>
+            <Field id="shippingFee" label="Shipping fee (INR, blank = free)" error={err("shippingFee")}>
+              <Input id="shippingFee" type="number" min={0} step="any" {...register("shippingFee", { valueAsNumber: true })} />
             </Field>
             <Field id="width" label="Width (cm)" error={err("width")}>
               <Input id="width" type="number" min={0} step="any" {...register("width", { valueAsNumber: true })} />

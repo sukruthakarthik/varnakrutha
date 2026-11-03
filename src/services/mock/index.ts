@@ -42,12 +42,18 @@ function toArtwork(
     width: input.width,
     height: input.height,
     price: input.price,
+    shippingFee: input.shippingFee,
     availability: input.availability,
     featured: input.featured,
     coverImage: input.coverImage ?? images[0]?.imageUrl ?? null,
     images,
     createdAt,
   };
+}
+
+/** Mirrors the database trigger: submissions from a blocked email are filed as spam. */
+function isBlocked(db: Awaited<ReturnType<typeof getMockDb>>, email: string): boolean {
+  return db.blockedEmails.some((b) => b.email === email.trim().toLowerCase());
 }
 
 export function createMockDataSource(): DataSource {
@@ -187,7 +193,7 @@ export function createMockDataSource(): DataSource {
           phone: input.phone,
           subject: input.subject,
           message: input.message,
-          status: "new",
+          status: isBlocked(db, input.email) ? "spam" : "new",
           createdAt: new Date().toISOString(),
         };
         db.inquiries.push(inquiry);
@@ -229,7 +235,7 @@ export function createMockDataSource(): DataSource {
         db.applications.push({
           ...input,
           id: crypto.randomUUID(),
-          status: "new",
+          status: isBlocked(db, input.email) ? "spam" : "new",
           adminNote: null,
           artistId: null,
           createdAt: new Date().toISOString(),
@@ -258,6 +264,23 @@ export function createMockDataSource(): DataSource {
       async delete(id) {
         const db = await getMockDb();
         db.applications = db.applications.filter((a) => a.id !== id);
+        await persistMockDb(db);
+      },
+    },
+
+    blocklist: {
+      async list() {
+        return [...(await getMockDb()).blockedEmails].sort(byNewest);
+      },
+      async block(email, reason) {
+        const db = await getMockDb();
+        if (isBlocked(db, email)) return;
+        db.blockedEmails.push({ email: email.trim().toLowerCase(), reason, createdAt: new Date().toISOString() });
+        await persistMockDb(db);
+      },
+      async unblock(email) {
+        const db = await getMockDb();
+        db.blockedEmails = db.blockedEmails.filter((b) => b.email !== email.trim().toLowerCase());
         await persistMockDb(db);
       },
     },

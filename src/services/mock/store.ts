@@ -3,7 +3,7 @@ import { promises as fs } from "fs";
 import path from "path";
 import { seedArtists, seedArtworks } from "@/data/seed";
 import type { ArtistProfileInput } from "@/features/artists/schemas";
-import type { Artist, ArtistApplication, Artwork, Inquiry } from "@/types";
+import type { Artist, ArtistApplication, Artwork, BlockedEmail, Inquiry, Order, OrderEvent } from "@/types";
 
 /** A local stand-in for a Supabase login, created when an application is accepted. */
 export interface MockAccount {
@@ -21,6 +21,11 @@ export interface MockDb {
   profileReviews: { artistId: string; profile: ArtistProfileInput; submittedAt: string }[];
   applications: ArtistApplication[];
   accounts: MockAccount[];
+  blockedEmails: BlockedEmail[];
+  orders: Order[];
+  orderEvents: OrderEvent[];
+  /** Razorpay webhook event ids already handled. */
+  webhookEvents: string[];
 }
 
 const DB_DIR = path.join(process.cwd(), ".data");
@@ -54,9 +59,14 @@ async function load(): Promise<MockDb> {
     db.profileReviews ??= [];
     db.applications = (db.applications ?? []).map((a) => ({ ...a, artistId: a.artistId ?? null }));
     db.accounts ??= [];
+    db.blockedEmails ??= [];
+    db.artworks = db.artworks.map((a) => ({ ...a, shippingFee: a.shippingFee ?? null }));
+    db.orders ??= [];
+    db.orderEvents ??= [];
+    db.webhookEvents ??= [];
     return db;
   } catch {
-    return structuredClone({ artists: seedArtists, artworks: seedArtworks, inquiries: [], profileReviews: [], applications: [], accounts: [] });
+    return structuredClone({ artists: seedArtists, artworks: seedArtworks, inquiries: [], profileReviews: [], applications: [], accounts: [], blockedEmails: [], orders: [], orderEvents: [], webhookEvents: [] });
   }
 }
 

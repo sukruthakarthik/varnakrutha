@@ -5,11 +5,13 @@ import { usePathname } from "next/navigation";
 import {
   ClipboardCheck,
   ExternalLink,
+  FlaskConical,
   Image as ImageIcon,
   KeyRound,
   LayoutDashboard,
   LogOut,
   MessageSquare,
+  Receipt,
   UserPlus,
   UserRound,
 } from "lucide-react";
@@ -23,7 +25,10 @@ const NAV: { href: string; label: string; icon: typeof LayoutDashboard; roles: R
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard, roles: ["admin", "artist"] },
   { href: "/admin/artworks", label: "Artworks", icon: ImageIcon, roles: ["admin", "artist"] },
   { href: "/admin/inquiries", label: "Inquiries", icon: MessageSquare, roles: ["admin"] },
+  { href: "/admin/orders", label: "Orders", icon: Receipt, roles: ["admin", "artist"] },
   { href: "/admin/profile", label: "Profile", icon: UserRound, roles: ["admin", "artist"] },
+  // Private study resources; admins only.
+  { href: "/admin/lab", label: "Lab", icon: FlaskConical, roles: ["admin"] },
 ];
 
 interface PlatformCounts {
@@ -45,15 +50,21 @@ export function AdminSidebar({
   role,
   platformCounts,
   canChangePassword,
+  showOrders,
 }: {
   artistName: string;
   role: Role;
   platformCounts: PlatformCounts | null;
   canChangePassword: boolean;
+  /** False while NEXT_PUBLIC_PAYMENTS_MODE is "off". */
+  showOrders: boolean;
 }) {
   const pathname = usePathname();
   const nav = [
-    ...NAV.filter((item) => item.roles.includes(role)).map((item) => ({ ...item, badge: 0 })),
+    ...NAV.filter((item) => item.roles.includes(role) && (showOrders || item.href !== "/admin/orders")).map((item) => ({
+      ...item,
+      badge: 0,
+    })),
     ...(platformCounts ? PLATFORM_NAV.map((item) => ({ ...item, badge: platformCounts[item.count] })) : []),
   ];
   const isActive = (href: string) => (href === "/admin" ? pathname === href : pathname.startsWith(href));

@@ -27,6 +27,8 @@ const EMPTY: ApplicationFormValues = {
 
 export function JoinForm() {
   const [sent, setSent] = useState(false);
+  // Shown on the thank-you screen, so the applicant can check where we'll write.
+  const [sentTo, setSentTo] = useState("");
   const [serverError, setServerError] = useState<string | null>(null);
 
   const {
@@ -46,6 +48,7 @@ export function JoinForm() {
     // The server re-validates, so it receives the raw (pre-transform) values.
     const result = await submitApplication(getValues());
     if (result.ok) {
+      setSentTo(getValues("email").trim());
       setSent(true);
       reset();
       return;
@@ -62,9 +65,27 @@ export function JoinForm() {
         <CheckCircle2 className="size-8 text-primary" aria-hidden />
         <h2 className="font-serif text-3xl">Thank you for applying</h2>
         <p className="text-foreground/80">
-          {/* Keep in step with APPLICATION_REPLY_DAYS, which the admin uses to flag late replies. */}
-          Your application has been received. Every application is looked at personally, and you will hear back by
-          email, usually within a week.
+          Your application has been received. This page is your confirmation; there&apos;s no need to apply again.
+        </p>
+        <div className="space-y-2">
+          <p className="font-medium">What happens next</p>
+          <ol className="list-decimal space-y-2 pl-5 text-sm text-foreground/80">
+            <li>Every application is looked at personally.</li>
+            <li>
+              You&apos;ll hear back by email{sentTo && <> at <strong className="font-medium text-foreground">{sentTo}</strong></>},
+              usually within a week.
+            </li>
+            <li>
+              If your work is a fit, you&apos;ll also receive a separate email from Varnakrutha with a link to set your
+              password. After that, you sign in at <strong className="font-medium text-foreground">varnakrutha.in/admin/login</strong>{" "}
+              with this email address and the password you chose, then add your paintings and complete your profile.
+            </li>
+          </ol>
+        </div>
+        <p className="text-xs text-muted-foreground">
+          Can&apos;t find our emails? Check your spam and Promotions folders, and add varnakrutha@gmail.com to your
+          contacts. The set-password link expires after a while; if it does, use &ldquo;Forgot your password?&rdquo; on the
+          sign-in page to get a new one.
         </p>
       </div>
     );

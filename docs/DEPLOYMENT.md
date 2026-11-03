@@ -70,7 +70,7 @@ Go to **Project Settings → API Keys** and copy:
 | `anon` / publishable key | `NEXT_PUBLIC_SUPABASE_ANON_KEY` |
 | `service_role` / secret key | `SUPABASE_SERVICE_ROLE_KEY` (server only) |
 
-> ⚠️ The `service_role` key bypasses all security rules. The app uses it in exactly one place: when an admin accepts an artist's application, to create the artist's login. Store it **only** as `SUPABASE_SERVICE_ROLE_KEY`. Never give it a `NEXT_PUBLIC_` prefix, which would publish it to every visitor.
+> ⚠️ The `service_role` key bypasses all security rules. The app uses it only in trusted server code: creating an artist's login when you accept an application, checking applications for repeat emails, and handling orders and payments. Store it **only** as `SUPABASE_SERVICE_ROLE_KEY`. Never give it a `NEXT_PUBLIC_` prefix, which would publish it to every visitor.
 
 ### 1.7 Artist account emails
 Accepting an application at `/admin/applications` creates the artist and emails them an invitation to choose a password. Artists who forget their password use **Forgot your password?** on the sign-in page. Both emails must link back to the site:
@@ -140,7 +140,8 @@ npx vercel env add SUPABASE_SERVICE_ROLE_KEY production
 | `NEXT_PUBLIC_SITE_URL` | `https://varnakrutha.in` |
 | `NEXT_PUBLIC_CONTACT_EMAIL` | An address you actually read, e.g. your Gmail. Optional: leave it out to hide the email link. |
 | `NEXT_PUBLIC_WHATSAPP_NUMBER` | Your WhatsApp number with country code, digits only, e.g. `919876543210`. Optional: leave it out to hide the WhatsApp link. |
-| `SUPABASE_SERVICE_ROLE_KEY` | `service_role` / secret key from step 1.6. Server only; needed to accept artist applications. |
+| `SUPABASE_SERVICE_ROLE_KEY` | `service_role` / secret key from step 1.6. Server only; needed to accept artist applications and for orders. |
+| `NEXT_PUBLIC_PAYMENTS_MODE` and payment settings | Optional; `off` by default. To sell online, follow [PAYMENTS.md](PAYMENTS.md) section 0. |
 | `CRON_SECRET` | A random string. Generate one with `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`. It protects the daily keep-alive job. |
 
 `ADMIN_PASSWORD` and `ADMIN_SESSION_SECRET` are only for local mock mode. They are **not** needed on Vercel.

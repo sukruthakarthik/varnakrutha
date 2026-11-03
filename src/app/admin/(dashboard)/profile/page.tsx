@@ -3,7 +3,7 @@ import { Clock, ExternalLink, EyeOff } from "lucide-react";
 import { ProfileForm } from "@/features/admin/components/profile-form";
 import { updateArtistProfile, uploadProfileImage } from "@/features/artists/actions";
 import { requireAdminPage } from "@/lib/auth";
-import { artistPath, siteConfig } from "@/lib/site";
+import { artistPath, isSiteArtist, siteConfig } from "@/lib/site";
 import { formatDate } from "@/utils/format";
 
 export const metadata = { title: "Profile" };
@@ -45,6 +45,7 @@ export default async function ProfilePage() {
         save={updateArtistProfile}
         upload={uploadProfileImage}
         submitLabel={isPlatformAdmin ? "Save profile" : "Submit for review"}
+        linksArePublic={isSiteArtist(artist.slug)}
         note={isPlatformAdmin ? undefined : "Changes are reviewed before they appear on your public page."}
       />
     </div>

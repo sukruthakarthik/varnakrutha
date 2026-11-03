@@ -87,6 +87,7 @@ Use mock mode for everyday testing. To start over with fresh sample data, stop t
 | Applications | Your test application from `/join` appears; try Shortlist, a note and Email. **Accept** creates the artist and shows a one-time password (mock mode) |
 | Artist login | Sign out, then sign in with the accepted applicant's email and that password. You should see only Dashboard, Artworks and Profile, and only that artist's artworks. Their work stays off `/gallery` and `/artists` until you approve their profile under Reviews |
 | Reviews | Empty in mock mode (see below) |
+| Orders (when `NEXT_PUBLIC_PAYMENTS_MODE=manual` and `NEXT_PUBLIC_UPI_ID` are set) | On a priced artwork, **Buy now** (your works) or **Reserve** (another artist's) → the order page shows UPI details. In **Admin → Orders**, confirm with any transaction ID → the painting shows as sold/reserved. Try a second Buy now on the same painting (it's blocked), Cancel, Complete, **Record a sale** and **Export CSV** |
 
 **Mock mode:** sign in with the email field blank and `ADMIN_PASSWORD` to act as the admin. Profile changes the admin makes publish immediately. An artist account (from accepting an application) submits its profile changes to Reviews, so you can test the whole review flow locally.
 

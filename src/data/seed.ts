@@ -240,6 +240,7 @@ export const seedArtworks: Artwork[] = defs.map((d) => {
     width: d.width,
     height: d.height,
     price: d.price,
+    shippingFee: null,
     availability: d.availability,
     featured: d.featured,
     coverImage: cover,

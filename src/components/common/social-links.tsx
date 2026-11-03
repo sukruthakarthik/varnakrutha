@@ -1,8 +1,11 @@
 import type { Artist } from "@/types";
+import { isSiteArtist } from "@/lib/site";
 import { cn } from "@/lib/utils";
 import { FacebookIcon, InstagramIcon, PinterestIcon, YoutubeIcon } from "./social-icons";
 
+/** Renders nothing for featured artists: their links are kept private (see isSiteArtist). */
 export function SocialLinks({ artist, className }: { artist: Artist; className?: string }) {
+  if (!isSiteArtist(artist.slug)) return null;
   const links = [
     { href: artist.instagram, label: "Instagram", Icon: InstagramIcon },
     { href: artist.youtube, label: "YouTube", Icon: YoutubeIcon },

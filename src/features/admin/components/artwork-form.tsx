@@ -213,10 +213,20 @@ export function ArtworkForm({ artwork, artistSlug }: { artwork?: Artwork; artist
               </>
             )}
             <Field id="description" label="Short description" error={err("description")} className="sm:col-span-2">
-              <Textarea id="description" rows={3} {...register("description")} />
+              <Textarea
+                id="description"
+                rows={3}
+                placeholder="What the painting shows, in 1–2 sentences — appears under the title and in Google/link previews."
+                {...register("description")}
+              />
             </Field>
             <Field id="story" label="Story behind the artwork" error={err("story")} className="sm:col-span-2">
-              <Textarea id="story" rows={8} {...register("story")} />
+              <Textarea
+                id="story"
+                rows={8}
+                placeholder="In your own words: why you painted it, where you were, how you made it. Leave a blank line between paragraphs."
+                {...register("story")}
+              />
             </Field>
           </CardContent>
         </Card>

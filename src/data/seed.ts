@@ -239,6 +239,8 @@ export const seedArtworks: Artwork[] = defs.map((d) => {
     categories: [d.category],
     width: d.width,
     height: d.height,
+    pixelWidth: null,
+    pixelHeight: null,
     price: d.price,
     shippingFee: null,
     availability: d.availability,

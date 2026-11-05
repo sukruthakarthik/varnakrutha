@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { minLongSidePx, PRINT_SIZES, printableSizes } from "@/lib/prints";
 import { AVAILABILITY, CATEGORIES, MAX_CATEGORIES } from "@/types";
 
 const optionalText = (max: number) =>
@@ -8,6 +9,11 @@ const optionalText = (max: number) =>
     .max(max)
     .transform((v) => (v === "" ? null : v))
     .nullable();
+
+const optionalPixels = z
+  .union([z.number(), z.nan(), z.null()])
+  .transform((v) => (v === null || Number.isNaN(v) ? null : v))
+  .pipe(z.number().int("Whole pixels only").positive().max(100_000).nullable());
 
 const optionalPositive = z
   .union([z.number(), z.nan(), z.null()])
@@ -37,6 +43,8 @@ export const artworkInputSchema = z.object({
     .transform((list) => CATEGORIES.filter((c) => list.includes(c))),
   width: optionalPositive,
   height: optionalPositive,
+  pixelWidth: optionalPixels,
+  pixelHeight: optionalPixels,
   price: optionalPositive,
   /** Charged on top of the price for online orders; goes to the artist in full. Blank = free shipping. */
   shippingFee: z
@@ -47,7 +55,26 @@ export const artworkInputSchema = z.object({
   featured: z.boolean(),
   coverImage: z.string().trim().max(1000).nullable(),
   images: z.array(z.string().trim().min(1).max(1000)).max(20),
-});
+})
+  .superRefine((a, ctx) => {
+    if (!a.categories.includes("digital")) return;
+    // Digital works are sold as prints, so we need the file size to know which prints will look sharp.
+    if (!a.pixelWidth) ctx.addIssue({ code: "custom", path: ["pixelWidth"], message: "Needed for digital artworks" });
+    if (!a.pixelHeight) ctx.addIssue({ code: "custom", path: ["pixelHeight"], message: "Needed for digital artworks" });
+    if (a.pixelWidth && a.pixelHeight && printableSizes(a.pixelWidth, a.pixelHeight).length === 0) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["pixelWidth"],
+        message: `Too small to print sharply. The longer side needs at least ${minLongSidePx(PRINT_SIZES[0]).toLocaleString("en-IN")} px.`,
+      });
+    }
+  })
+  // Keep only the size that fits the kind of work: centimetres for originals, pixels for digital.
+  .transform((a) =>
+    a.categories.includes("digital")
+      ? { ...a, width: null, height: null }
+      : { ...a, pixelWidth: null, pixelHeight: null },
+  );
 
 export type ArtworkInput = z.output<typeof artworkInputSchema>;
 export type ArtworkFormValues = z.input<typeof artworkInputSchema>;

@@ -98,6 +98,10 @@ export interface Artwork {
   width: number | null;
   /** Centimetres */
   height: number | null;
+  /** Digital artworks only: the print file's size in pixels, which decides the print sizes offered. */
+  pixelWidth: number | null;
+  pixelHeight: number | null;
+  /** Physical works: the selling price. Digital works: the artist's price, before printing is added. */
   price: number | null;
   /** Rupees, added to the price for online orders; null = free shipping. */
   shippingFee: number | null;

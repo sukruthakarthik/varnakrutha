@@ -27,6 +27,8 @@ interface CheckoutTarget {
   price: number | null;
   shippingFee: number | null;
   availability: Availability;
+  /** Digital works are sold as prints, which don't go through this checkout (yet). */
+  isDigital: boolean;
   artistId: string;
   artistName: string;
   artistSlug: string;
@@ -164,7 +166,7 @@ async function supabaseStore(): Promise<OrderStore> {
       const { data, error } = await db
         .from("artworks")
         .select(
-          "id, title, price, shipping_fee, availability, artist_id, artists(name, slug, approved_at, commission_rate_bps, razorpay_account_id)",
+          "id, title, price, shipping_fee, availability, categories, artist_id, artists(name, slug, approved_at, commission_rate_bps, razorpay_account_id)",
         )
         .eq("id", artworkId)
         .maybeSingle();
@@ -176,6 +178,7 @@ async function supabaseStore(): Promise<OrderStore> {
         price: number | null;
         shipping_fee: number | null;
         availability: Availability;
+        categories: string[] | null;
         artist_id: string;
         artists: {
           name: string;
@@ -192,6 +195,7 @@ async function supabaseStore(): Promise<OrderStore> {
         price: r.price === null ? null : Number(r.price),
         shippingFee: r.shipping_fee === null ? null : Number(r.shipping_fee),
         availability: r.availability,
+        isDigital: (r.categories ?? []).includes("digital"),
         artistId: r.artist_id,
         artistName: r.artists.name,
         artistSlug: r.artists.slug,
@@ -325,6 +329,7 @@ function mockStore(): OrderStore {
         price: artwork.price,
         shippingFee: artwork.shippingFee ?? null,
         availability: artwork.availability,
+        isDigital: artwork.categories.includes("digital"),
         artistId: artist.id,
         artistName: artist.name,
         artistSlug: artist.slug,
@@ -429,6 +434,7 @@ function quoteFor(target: CheckoutTarget): CheckoutQuote {
   });
   let unavailableReason: string | null = null;
   if (!target.artistApproved) unavailableReason = "This artist's page isn't public yet.";
+  else if (target.isDigital) unavailableReason = "Prints can't be ordered online yet; please enquire.";
   else if (target.availability !== "available") unavailableReason = "This painting is no longer available.";
   else if (pricePaise < MIN_ONLINE_PRICE_PAISE) unavailableReason = "This painting can't be bought online; please enquire.";
   else if (amounts.amountPaise <= 0) unavailableReason = "This painting can't be reserved online; please enquire.";

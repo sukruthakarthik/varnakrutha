@@ -14,7 +14,9 @@ import { Label } from "@/components/ui/label";
 import { createArtwork, updateArtwork } from "@/features/artworks/actions";
 import { artworkInputSchema, type ArtworkFormValues, type ArtworkInput } from "@/features/artworks/schemas";
 import { AVAILABILITY_META, CATEGORY_META } from "@/lib/constants";
+import { minLongSidePx, PRINT_MATERIAL_META, PRINT_MATERIALS, PRINT_SIZES, printOptions } from "@/lib/prints";
 import { absoluteUrl, artworkPath } from "@/lib/site";
+import { formatPrice } from "@/utils/format";
 import { AVAILABILITY, CATEGORIES, MAX_CATEGORIES, type Artwork, type Category } from "@/types";
 import { cn } from "@/lib/utils";
 import { slugify } from "@/utils/format";
@@ -33,6 +35,8 @@ function toFormValues(a?: Artwork): ArtworkFormValues {
     categories: a?.categories ?? [],
     width: a?.width ?? null,
     height: a?.height ?? null,
+    pixelWidth: a?.pixelWidth ?? null,
+    pixelHeight: a?.pixelHeight ?? null,
     price: a?.price ?? null,
     shippingFee: a?.shippingFee ?? null,
     availability: a?.availability ?? "available",
@@ -61,7 +65,21 @@ export function ArtworkForm({ artwork, artistSlug }: { artwork?: Artwork; artist
     defaultValues: toFormValues(artwork),
   });
 
-  const [images, coverImage, categories, slug] = watch(["images", "coverImage", "categories", "slug"]);
+  const [images, coverImage, categories, slug, price, pixelWidth, pixelHeight] = watch([
+    "images",
+    "coverImage",
+    "categories",
+    "slug",
+    "price",
+    "pixelWidth",
+    "pixelHeight",
+  ]);
+  // Digital works are printed to order, so they get pixel sizes and print prices instead of centimetres.
+  const digital = categories.includes("digital");
+  const toNumber = (v: unknown) => (typeof v === "number" && !Number.isNaN(v) ? v : null);
+  const prints = digital
+    ? printOptions({ categories, price: toNumber(price), pixelWidth: toNumber(pixelWidth), pixelHeight: toNumber(pixelHeight) })
+    : [];
 
   // Tags work like on/off switches: click to add a category, click again to remove it.
   function toggleCategory(c: Category) {
@@ -158,23 +176,42 @@ export function ArtworkForm({ artwork, artistSlug }: { artwork?: Artwork; artist
               )}
             </fieldset>
             <Field id="medium" label="Medium" error={err("medium")}>
-              <Input id="medium" placeholder="Watercolor on paper" {...register("medium")} />
+              <Input id="medium" placeholder={digital ? "Digital painting (Procreate)" : "Watercolor on paper"} {...register("medium")} />
             </Field>
             <Field id="year" label="Year" error={err("year")}>
               <Input id="year" type="number" inputMode="numeric" {...register("year", { valueAsNumber: true })} />
             </Field>
-            <Field id="price" label="Price (INR, optional)" error={err("price")}>
+            <Field
+              id="price"
+              label={digital ? "Your price per print (INR)" : "Price (INR, optional)"}
+              hint={digital ? "What you earn before commission. Printing is added on top." : undefined}
+              error={err("price")}
+            >
               <Input id="price" type="number" min={0} step="any" {...register("price", { valueAsNumber: true })} />
             </Field>
             <Field id="shippingFee" label="Shipping fee (INR, blank = free)" error={err("shippingFee")}>
               <Input id="shippingFee" type="number" min={0} step="any" {...register("shippingFee", { valueAsNumber: true })} />
             </Field>
-            <Field id="width" label="Width (cm)" error={err("width")}>
-              <Input id="width" type="number" min={0} step="any" {...register("width", { valueAsNumber: true })} />
-            </Field>
-            <Field id="height" label="Height (cm)" error={err("height")}>
-              <Input id="height" type="number" min={0} step="any" {...register("height", { valueAsNumber: true })} />
-            </Field>
+            {digital ? (
+              <>
+                <Field id="pixelWidth" label="Image width (pixels)" error={err("pixelWidth")} hint="From your file's properties, e.g. 6000">
+                  <Input id="pixelWidth" type="number" min={1} step={1} inputMode="numeric" {...register("pixelWidth", { valueAsNumber: true })} />
+                </Field>
+                <Field id="pixelHeight" label="Image height (pixels)" error={err("pixelHeight")} hint="e.g. 4000">
+                  <Input id="pixelHeight" type="number" min={1} step={1} inputMode="numeric" {...register("pixelHeight", { valueAsNumber: true })} />
+                </Field>
+                <PrintPreview options={prints} hasPrice={Boolean(toNumber(price))} hasPixels={Boolean(toNumber(pixelWidth) && toNumber(pixelHeight))} />
+              </>
+            ) : (
+              <>
+                <Field id="width" label="Width (cm)" error={err("width")}>
+                  <Input id="width" type="number" min={0} step="any" {...register("width", { valueAsNumber: true })} />
+                </Field>
+                <Field id="height" label="Height (cm)" error={err("height")}>
+                  <Input id="height" type="number" min={0} step="any" {...register("height", { valueAsNumber: true })} />
+                </Field>
+              </>
+            )}
             <Field id="description" label="Short description" error={err("description")} className="sm:col-span-2">
               <Textarea id="description" rows={3} {...register("description")} />
             </Field>
@@ -238,5 +275,64 @@ export function ArtworkForm({ artwork, artistSlug }: { artwork?: Artwork; artist
         </div>
       </div>
     </form>
+  );
+}
+
+/** Live preview of the prints buyers will be offered, so the artist sees the effect of file size and price. */
+function PrintPreview({
+  options,
+  hasPrice,
+  hasPixels,
+}: {
+  options: ReturnType<typeof printOptions>;
+  hasPrice: boolean;
+  hasPixels: boolean;
+}) {
+  const sizes = [...new Set(options.map((o) => o.size))];
+  return (
+    <div className="space-y-3 rounded-sm border border-border bg-secondary/40 p-4 text-sm sm:col-span-2">
+      <p className="font-medium">Prints buyers can order</p>
+      {!hasPixels || !hasPrice ? (
+        <p className="text-muted-foreground">Enter your price and the image size in pixels to see the print sizes and prices.</p>
+      ) : sizes.length === 0 ? (
+        <p className="text-destructive">
+          This file is too small to print sharply. The longer side needs at least {minLongSidePx(PRINT_SIZES[0]).toLocaleString("en-IN")} px.
+        </p>
+      ) : (
+        <>
+          <table className="w-full text-left">
+            <thead className="text-xs uppercase tracking-wide text-muted-foreground">
+              <tr>
+                <th scope="col" className="py-1 font-medium">Size</th>
+                {PRINT_MATERIALS.map((m) => (
+                  <th key={m} scope="col" className="py-1 font-medium">
+                    {PRINT_MATERIAL_META[m].label}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {sizes.map((size) => (
+                <tr key={size} className="border-t border-border/60">
+                  <td className="py-1.5">{size}</td>
+                  {PRINT_MATERIALS.map((m) => {
+                    const o = options.find((x) => x.size === size && x.material === m);
+                    return (
+                      <td key={m} className="py-1.5">
+                        {o ? formatPrice(o.total) : "—"}
+                      </td>
+                    );
+                  })}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <p className="text-xs text-muted-foreground">
+            Buyer pays your price + printing (set by Varnakrutha), plus shipping. Bigger sizes appear when the file has enough pixels
+            {sizes.length < PRINT_SIZES.length && ` (${PRINT_SIZES[sizes.length]} needs about ${minLongSidePx(PRINT_SIZES[sizes.length]!).toLocaleString("en-IN")} px on the longer side)`}.
+          </p>
+        </>
+      )}
+    </div>
   );
 }

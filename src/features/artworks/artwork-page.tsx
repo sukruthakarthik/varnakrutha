@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { BuyButton, type BuyQuote } from "@/features/orders/components/buy-button";
 import { categoryLabels } from "@/lib/constants";
 import { paymentsEnabled } from "@/lib/payments/config";
+import { isDigital, PRINT_MATERIAL_META, PRINT_MATERIALS, printOptions } from "@/lib/prints";
 import { absoluteUrl, artistPath, artworkPath, defaultOgImage, defaultOpenGraph, siteConfig } from "@/lib/site";
 import { cn } from "@/lib/utils";
 import { getPublicDataSource } from "@/services";
@@ -19,7 +20,7 @@ import { ViewOnWall } from "./components/view-on-wall";
 
 /** The buy/reserve offer for this artwork, or null when payments are off or it can't be bought online. */
 async function buyQuote(artwork: Artwork): Promise<BuyQuote | null> {
-  if (!paymentsEnabled || artwork.availability !== "available" || !artwork.price) return null;
+  if (!paymentsEnabled || artwork.availability !== "available" || !artwork.price || isDigital(artwork)) return null;
   try {
     const quote = await getCheckoutQuote(artwork.id);
     if (!quote || quote.unavailableReason) return null;
@@ -72,14 +73,19 @@ export async function ArtworkDetail({ artist, artwork }: { artist: Artist; artwo
   const prev = all.length > 1 ? all[(position - 1 + all.length) % all.length] : null;
   const next = all.length > 1 ? all[(position + 1) % all.length] : null;
 
-  const price = formatPrice(artwork.price);
-  const dimensions = formatDimensions(artwork.width, artwork.height);
+  // Digital works are sold as prints in sizes Varnakrutha picks from the file's pixel size.
+  const digital = isDigital(artwork);
+  const prints = printOptions(artwork);
+  const printSizes = [...new Set(prints.map((p) => p.size))];
+  const price = digital ? (prints[0] ? `From ${formatPrice(prints[0].total)}` : null) : formatPrice(artwork.price);
+  const dimensions = digital ? null : formatDimensions(artwork.width, artwork.height);
   const enquireHref = `/contact?artwork=${encodeURIComponent(artwork.slug)}${isOwnArtist ? "" : `&artist=${encodeURIComponent(artist.slug)}`}`;
 
   const details = [
     { label: "Year", value: artwork.year?.toString() },
     { label: "Medium", value: artwork.medium },
     { label: "Dimensions", value: dimensions },
+    { label: "Prints", value: printSizes.length ? `${printSizes.join(", ")} · paper or canvas` : null },
     { label: artwork.categories.length > 1 ? "Categories" : "Category", value: categoryLabels(artwork.categories) },
     { label: "Price", value: artwork.availability === "sold" ? null : price },
   ].filter((d): d is { label: string; value: string } => Boolean(d.value));
@@ -101,7 +107,7 @@ export async function ArtworkDetail({ artist, artwork }: { artist: Artist; artwo
       artwork.price && artwork.availability !== "sold"
         ? {
             "@type": "Offer",
-            price: artwork.price,
+            price: digital ? (prints[0]?.total ?? artwork.price) : artwork.price,
             priceCurrency: "INR",
             availability:
               artwork.availability === "available" ? "https://schema.org/InStock" : "https://schema.org/LimitedAvailability",
@@ -155,12 +161,48 @@ export async function ArtworkDetail({ artist, artwork }: { artist: Artist; artwo
             ))}
           </dl>
 
+          {prints.length > 0 && (
+            <section aria-labelledby="prints-heading" className="space-y-3">
+              <h2 id="prints-heading" className="text-xs uppercase tracking-[0.15em] text-muted-foreground">
+                Printed to order
+              </h2>
+              <table className="w-full text-left text-sm">
+                <thead className="text-xs text-muted-foreground">
+                  <tr>
+                    <th scope="col" className="pb-2 font-medium">Size</th>
+                    {PRINT_MATERIALS.map((m) => (
+                      <th key={m} scope="col" className="pb-2 font-medium">
+                        {PRINT_MATERIAL_META[m].label}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {printSizes.map((size) => (
+                    <tr key={size} className="border-t border-border">
+                      <td className="py-2">{size}</td>
+                      {PRINT_MATERIALS.map((m) => {
+                        const o = prints.find((p) => p.size === size && p.material === m);
+                        return (
+                          <td key={m} className="py-2">
+                            {o ? formatPrice(o.total) : "—"}
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <p className="text-xs text-muted-foreground">Prices include printing. Shipping is added when you order.</p>
+            </section>
+          )}
+
           {quote && <BuyButton artworkId={artwork.id} quote={quote} />}
           <div className="flex flex-col gap-3 sm:flex-row">
             {artwork.availability !== "sold" && (
               <Button asChild size="lg" variant={quote ? "outline" : "default"} className="flex-1">
                 <Link href={enquireHref}>
-                  <ShoppingBag aria-hidden /> Enquire About Purchase
+                  <ShoppingBag aria-hidden /> {digital ? "Enquire to Order a Print" : "Enquire About Purchase"}
                 </Link>
               </Button>
             )}

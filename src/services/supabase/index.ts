@@ -71,6 +71,8 @@ interface ArtworkRow {
   categories: Category[];
   width: number | null;
   height: number | null;
+  pixel_width: number | null;
+  pixel_height: number | null;
   price: number | null;
   shipping_fee: number | null;
   availability: Availability;
@@ -180,6 +182,8 @@ const toArtwork = (r: ArtworkRow): Artwork => ({
   categories: r.categories,
   width: r.width === null ? null : Number(r.width),
   height: r.height === null ? null : Number(r.height),
+  pixelWidth: r.pixel_width ?? null,
+  pixelHeight: r.pixel_height ?? null,
   price: r.price === null ? null : Number(r.price),
   shippingFee: r.shipping_fee === null || r.shipping_fee === undefined ? null : Number(r.shipping_fee),
   availability: r.availability,
@@ -222,6 +226,8 @@ const toArtworkRow = (input: ArtworkInput) => ({
   categories: input.categories,
   width: input.width,
   height: input.height,
+  pixel_width: input.pixelWidth,
+  pixel_height: input.pixelHeight,
   price: input.price,
   shipping_fee: input.shippingFee,
   availability: input.availability,

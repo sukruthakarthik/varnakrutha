@@ -41,6 +41,8 @@ function toArtwork(
     categories: input.categories,
     width: input.width,
     height: input.height,
+    pixelWidth: input.pixelWidth,
+    pixelHeight: input.pixelHeight,
     price: input.price,
     shippingFee: input.shippingFee,
     availability: input.availability,

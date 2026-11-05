@@ -17,6 +17,7 @@ export const applicationInputSchema = z.object({
   portfolioUrl: z
     .string()
     .trim()
+    .min(1, "Please add a link so we can see your work. A shared Google Drive or Google Photos album is fine.")
     .max(500)
     .regex(URL_PATTERN, "Enter a full link starting with https://"),
   /** One link per line in the form. */

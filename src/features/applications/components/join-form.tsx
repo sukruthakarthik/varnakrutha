@@ -116,14 +116,20 @@ export function JoinForm() {
         </Field>
       </div>
 
-      <Field id="portfolioUrl" label="Instagram or portfolio link" error={errors.portfolioUrl?.message} required>
+      <Field
+        id="portfolioUrl"
+        label="Instagram or any other portfolio link"
+        hint="No portfolio online? Put 3 to 5 photos of your paintings in a Google Drive or Google Photos album, share it with “Anyone with the link”, and paste that link here."
+        error={errors.portfolioUrl?.message}
+        required
+      >
         <Input
           id="portfolioUrl"
           type="url"
           inputMode="url"
-          placeholder="https://www.instagram.com/yourname"
+          placeholder="https://"
           aria-invalid={!!errors.portfolioUrl}
-          aria-describedby={describedBy("portfolioUrl")}
+          aria-describedby={["portfolioUrl-hint", describedBy("portfolioUrl")].filter(Boolean).join(" ")}
           {...register("portfolioUrl")}
         />
       </Field>

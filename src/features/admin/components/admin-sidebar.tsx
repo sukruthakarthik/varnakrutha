@@ -14,6 +14,7 @@ import {
   Receipt,
   UserPlus,
   UserRound,
+  Wrench,
 } from "lucide-react";
 import type { Role } from "@/lib/auth/roles";
 import { Wordmark } from "@/components/common/wordmark";
@@ -29,6 +30,7 @@ const NAV: { href: string; label: string; icon: typeof LayoutDashboard; roles: R
   { href: "/admin/profile", label: "Profile", icon: UserRound, roles: ["admin", "artist"] },
   // Private study resources; admins only.
   { href: "/admin/lab", label: "Lab", icon: FlaskConical, roles: ["admin"] },
+  { href: "/admin/test", label: "Test", icon: Wrench, roles: ["admin"] },
 ];
 
 interface PlatformCounts {

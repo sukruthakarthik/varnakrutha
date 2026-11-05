@@ -1,5 +1,5 @@
 import "server-only";
-import type { SupabaseClient } from "@supabase/supabase-js";
+import type { SupabaseClient, User } from "@supabase/supabase-js";
 import { generateTemporaryPassword, hashPassword, verifyPassword } from "@/lib/auth/password";
 import { isSupabase } from "@/lib/env";
 import { absoluteUrl } from "@/lib/site";
@@ -67,15 +67,64 @@ export async function sendSetPasswordEmail(email: string): Promise<void> {
   if (error) throw new RepositoryError(`Couldn't send the set-password email: ${error.message}`);
 }
 
-async function findUserIdByEmail(admin: SupabaseClient, email: string): Promise<string | null> {
+async function findUserByEmail(admin: SupabaseClient, email: string): Promise<User | null> {
   for (let page = 1; page <= 50; page++) {
     const { data, error } = await admin.auth.admin.listUsers({ page, perPage: 200 });
     if (error) throw new RepositoryError(error.message);
     const match = data.users.find((u) => u.email?.toLowerCase() === email);
-    if (match) return match.id;
+    if (match) return match;
     if (data.users.length < 200) return null;
   }
   return null;
+}
+
+export interface EmailTestReport {
+  email: string;
+  sent: "invitation" | "reset password";
+  /** The login as it stood before the test; null if the address had none. */
+  login: { createdAt: string; invitedAt: string | null; confirmedAt: string | null; lastSignInAt: string | null; recoverySentAt: string | null } | null;
+  /** Supabase's own words if it refused; null if it accepted the email. */
+  error: string | null;
+}
+
+/**
+ * Admin → Test. Sends what Accept would send, and reports Supabase's answer instead of hiding it: a reset
+ * email for an address with a login, otherwise an invitation. The invitation needs a login, so one is created
+ * and removed straight away; that also stops the emailed link working, which is fine for a delivery test.
+ */
+export async function runEmailTest(email: string): Promise<EmailTestReport> {
+  if (!isSupabase) throw new RepositoryError("Emails are only sent with Supabase, and this site is in mock mode.", "invalid");
+  const { createAdminSupabaseClient } = await import("@/lib/supabase/admin");
+  const admin = createAdminSupabaseClient();
+  const redirectTo = absoluteUrl(SET_PASSWORD_PATH);
+
+  const user = await findUserByEmail(admin, email);
+  if (user) {
+    const { error } = await admin.auth.resetPasswordForEmail(email, { redirectTo });
+    return {
+      email,
+      sent: "reset password",
+      login: {
+        createdAt: user.created_at,
+        invitedAt: user.invited_at ?? null,
+        confirmedAt: user.email_confirmed_at ?? null,
+        lastSignInAt: user.last_sign_in_at ?? null,
+        recoverySentAt: user.recovery_sent_at ?? null,
+      },
+      error: error?.message ?? null,
+    };
+  }
+
+  const { error } = await admin.auth.admin.inviteUserByEmail(email, { redirectTo });
+  // Looked up again because Supabase can keep the login even when the email failed.
+  const created = await findUserByEmail(admin, email);
+  if (created) {
+    const { error: cleanupError } = await admin.auth.admin.deleteUser(created.id);
+    if (cleanupError) {
+      throw new RepositoryError(`The test login for ${email} couldn't be removed; delete it in Authentication → Users. ${cleanupError.message}`);
+    }
+  }
+  return { email, sent: "invitation", login: null, error: error?.message ?? null };
 }
 
 async function provisionWithSupabase(application: ArtistApplication): Promise<ProvisionedArtist> {
@@ -99,11 +148,11 @@ async function provisionWithSupabase(application: ArtistApplication): Promise<Pr
     createdUser = true;
   } else {
     // Usually "already registered". Supabase also keeps the account when the invitation email itself fails.
-    const existing = await findUserIdByEmail(admin, email);
+    const existing = await findUserByEmail(admin, email);
     if (!existing) {
       throw new RepositoryError(`Couldn't send the invitation email: ${inviteError?.message ?? "unknown error"}`);
     }
-    userId = existing;
+    userId = existing.id;
   }
 
   let createdArtistId: string | null = null;

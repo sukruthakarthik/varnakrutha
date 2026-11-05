@@ -126,12 +126,14 @@ export function Field({
   id,
   label,
   error,
+  hint,
   required,
   children,
 }: {
   id: string;
   label: string;
   error?: string;
+  hint?: string;
   required?: boolean;
   children: React.ReactNode;
 }) {
@@ -142,6 +144,11 @@ export function Field({
         {required && <span className="text-primary"> *</span>}
       </Label>
       {children}
+      {hint && (
+        <p id={`${id}-hint`} className="text-xs text-muted-foreground">
+          {hint}
+        </p>
+      )}
       {error && (
         <p id={`${id}-error`} className="text-sm text-destructive">
           {error}

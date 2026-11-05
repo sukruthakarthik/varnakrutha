@@ -91,7 +91,7 @@ Accepting an application at `/admin/applications` creates the artist and emails 
    | Username | `varnakrutha@gmail.com` |
    | Password | A Google **App Password**, not the Gmail password or a passkey. Turn on 2-Step Verification with a phone or Google prompt, then create one at [myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords). Google shows the 16 characters only once. |
 
-5. **If an artist says the email never came:** Admin → Applications → their accepted application → **Send set-password email**. It sends the Reset password email from step 3; the link expires after an hour (Authentication → Providers → Email → OTP expiry). They can also use **Forgot your password?** on the sign-in page themselves.
+5. **If an artist says the email never came:** Admin → Applications → their accepted application → **Send set-password email**. It sends the Reset password email from step 3; the link expires after an hour (Authentication → Providers → Email → OTP expiry). They can also use **Forgot your password?** on the sign-in page themselves. To debug delivery from the live site, use **Admin → Test**: it sends what Accept would send and shows the answer from Supabase.
 
    Gmail allows about 500 emails a day. Only accepting an artist and password resets send email; applications don't.
 

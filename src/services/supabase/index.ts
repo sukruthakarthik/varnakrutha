@@ -68,7 +68,7 @@ interface ArtworkRow {
   story: string | null;
   year: number | null;
   medium: string | null;
-  category: Category;
+  categories: Category[];
   width: number | null;
   height: number | null;
   price: number | null;
@@ -177,7 +177,7 @@ const toArtwork = (r: ArtworkRow): Artwork => ({
   story: r.story,
   year: r.year,
   medium: r.medium,
-  category: r.category,
+  categories: r.categories,
   width: r.width === null ? null : Number(r.width),
   height: r.height === null ? null : Number(r.height),
   price: r.price === null ? null : Number(r.price),
@@ -219,7 +219,7 @@ const toArtworkRow = (input: ArtworkInput) => ({
   story: input.story,
   year: input.year,
   medium: input.medium,
-  category: input.category,
+  categories: input.categories,
   width: input.width,
   height: input.height,
   price: input.price,
@@ -341,7 +341,7 @@ export function createSupabaseDataSource(client: SupabaseClient): DataSource {
           .select(ARTWORK_SELECT)
           .order("created_at", { ascending: false });
         if (filters.artistId) query = query.eq("artist_id", filters.artistId);
-        if (filters.category) query = query.eq("category", filters.category);
+        if (filters.category) query = query.contains("categories", [filters.category]);
         if (filters.availability) query = query.eq("availability", filters.availability);
         if (filters.featured !== undefined) query = query.eq("featured", filters.featured);
         if (filters.limit) query = query.limit(filters.limit);

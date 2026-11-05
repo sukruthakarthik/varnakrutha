@@ -14,7 +14,8 @@ import { formatBytes } from "@/utils/format";
 interface ImageManagerProps {
   images: string[];
   cover: string | null;
-  category: Category;
+  /** Null until at least one category is chosen. */
+  category: Category | null;
   slug: string;
   onChange: (images: string[], cover: string | null) => void;
 }
@@ -28,6 +29,10 @@ export function ImageManager({ images, cover, category, slug, onChange }: ImageM
     if (!files?.length) return;
     if (!slug) {
       toast.error("Add a title first so images can be named correctly.");
+      return;
+    }
+    if (!category) {
+      toast.error("Pick at least one category first so images can be filed correctly.");
       return;
     }
 

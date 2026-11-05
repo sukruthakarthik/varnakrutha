@@ -3,7 +3,7 @@ import Link from "next/link";
 import { ArrowLeft, ArrowRight, Mail, ShoppingBag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { BuyButton, type BuyQuote } from "@/features/orders/components/buy-button";
-import { CATEGORY_META } from "@/lib/constants";
+import { categoryLabels } from "@/lib/constants";
 import { paymentsEnabled } from "@/lib/payments/config";
 import { absoluteUrl, artistPath, artworkPath, defaultOgImage, defaultOpenGraph, siteConfig } from "@/lib/site";
 import { cn } from "@/lib/utils";
@@ -37,7 +37,7 @@ export function artworkMetadata(artist: Artist, artwork: Artwork | null): Metada
 
   const title = `${artwork.title}${artwork.medium ? ` — ${artwork.medium}` : ""}`;
   const description = truncate(
-    artwork.description ?? `${artwork.title} by ${artist.name}. ${CATEGORY_META[artwork.category].label} artwork.`,
+    artwork.description ?? `${artwork.title} by ${artist.name}. ${categoryLabels(artwork.categories)} artwork.`,
     160,
   );
   const url = artworkPath(artwork.slug, artist.slug);
@@ -61,7 +61,12 @@ export async function ArtworkDetail({ artist, artwork }: { artist: Artist; artwo
     getPublicDataSource().then((ds) => ds.artworks.list({ artistId: artist.id })),
     buyQuote(artwork),
   ]);
-  const related = all.filter((a) => a.category === artwork.category && a.id !== artwork.id).slice(0, 3);
+  // Works that share the most categories with this one come first.
+  const shared = (a: Artwork) => a.categories.filter((c) => artwork.categories.includes(c)).length;
+  const related = all
+    .filter((a) => a.id !== artwork.id && shared(a) > 0)
+    .sort((a, b) => shared(b) - shared(a))
+    .slice(0, 3);
   // Wraps around, so every work has a neighbour on both sides.
   const position = all.findIndex((a) => a.id === artwork.id);
   const prev = all.length > 1 ? all[(position - 1 + all.length) % all.length] : null;
@@ -75,7 +80,7 @@ export async function ArtworkDetail({ artist, artwork }: { artist: Artist; artwo
     { label: "Year", value: artwork.year?.toString() },
     { label: "Medium", value: artwork.medium },
     { label: "Dimensions", value: dimensions },
-    { label: "Category", value: CATEGORY_META[artwork.category].label },
+    { label: artwork.categories.length > 1 ? "Categories" : "Category", value: categoryLabels(artwork.categories) },
     { label: "Price", value: artwork.availability === "sold" ? null : price },
   ].filter((d): d is { label: string; value: string } => Boolean(d.value));
 
@@ -202,7 +207,7 @@ export async function ArtworkDetail({ artist, artwork }: { artist: Artist; artwo
       {related.length > 0 && (
         <section className="mt-24" aria-labelledby="related-heading">
           <h2 id="related-heading" className="reveal mb-12 text-4xl md:text-5xl">
-            More in <span className="italic">{CATEGORY_META[artwork.category].label}</span>
+            More like <span className="italic">this</span>
           </h2>
           <div className="grid gap-x-8 gap-y-16 sm:grid-cols-2 lg:grid-cols-3">
             {related.map((a) => (

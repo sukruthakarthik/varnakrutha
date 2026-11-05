@@ -25,8 +25,8 @@ export default async function HomePage() {
   const categories = CATEGORIES.map((c) => ({
     slug: c,
     ...CATEGORY_META[c],
-    count: artworks.filter((a) => a.category === c).length,
-    cover: artworks.find((a) => a.category === c && a.coverImage)?.coverImage ?? null,
+    count: artworks.filter((a) => a.categories.includes(c)).length,
+    cover: artworks.find((a) => a.categories.includes(c) && a.coverImage)?.coverImage ?? null,
   })).filter((c) => c.count > 0);
 
   return (

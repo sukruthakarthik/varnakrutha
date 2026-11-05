@@ -5,9 +5,14 @@ export const CATEGORIES = [
   "watercolor",
   "acrylic",
   "sketches",
+  "digital",
+  "abstract",
   "other",
 ] as const;
 export type Category = (typeof CATEGORIES)[number];
+
+/** An artwork can sit in several categories at once (e.g. digital and abstract). */
+export const MAX_CATEGORIES = 5;
 
 export const AVAILABILITY = ["available", "sold", "reserved"] as const;
 export type Availability = (typeof AVAILABILITY)[number];
@@ -87,7 +92,8 @@ export interface Artwork {
   story: string | null;
   year: number | null;
   medium: string | null;
-  category: Category;
+  /** At least one, in CATEGORIES order. The first decides the storage folder for new uploads. */
+  categories: Category[];
   /** Centimetres */
   width: number | null;
   /** Centimetres */

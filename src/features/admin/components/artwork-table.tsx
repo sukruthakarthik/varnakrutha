@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { NativeSelect } from "@/components/ui/input";
 import { deleteArtwork, setArtworkAvailability } from "@/features/artworks/actions";
 import { ArtworkImage } from "@/features/artworks/components/artwork-image";
-import { AVAILABILITY_META, CATEGORY_META } from "@/lib/constants";
+import { AVAILABILITY_META, categoryLabels } from "@/lib/constants";
 import { AVAILABILITY, type Artwork, type Availability } from "@/types";
 import { formatPrice } from "@/utils/format";
 import { adminKeys, useAdminArtworks } from "../hooks";
@@ -71,7 +71,7 @@ export function ArtworkTable({ initialData }: { initialData: Artwork[] }) {
         <thead className="border-b border-border bg-muted/60 text-left text-xs uppercase tracking-[0.12em] text-muted-foreground">
           <tr>
             <th scope="col" className="px-4 py-3 font-medium">Artwork</th>
-            <th scope="col" className="px-4 py-3 font-medium">Category</th>
+            <th scope="col" className="px-4 py-3 font-medium">Categories</th>
             <th scope="col" className="px-4 py-3 font-medium">Price</th>
             <th scope="col" className="px-4 py-3 font-medium">Availability</th>
             <th scope="col" className="px-4 py-3 text-right font-medium">Actions</th>
@@ -94,7 +94,7 @@ export function ArtworkTable({ initialData }: { initialData: Artwork[] }) {
                   </div>
                 </div>
               </td>
-              <td className="px-4 py-3">{CATEGORY_META[a.category].label}</td>
+              <td className="px-4 py-3">{categoryLabels(a.categories)}</td>
               <td className="px-4 py-3">{formatPrice(a.price) ?? "—"}</td>
               <td className="px-4 py-3">
                 <label className="sr-only" htmlFor={`availability-${a.id}`}>

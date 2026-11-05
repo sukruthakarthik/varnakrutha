@@ -34,12 +34,27 @@ export const CATEGORY_META: Record<
     storageFolder: "sketches",
     description: "Pencil, ink and on-location studies.",
   },
+  digital: {
+    label: "Digital",
+    storageFolder: "digital",
+    description: "Works painted and drawn on screen.",
+  },
+  abstract: {
+    label: "Abstract",
+    storageFolder: "abstract",
+    description: "Colour, shape and feeling beyond the literal.",
+  },
   other: {
     label: "Other",
     storageFolder: "other",
     description: "Experiments and creative expressions.",
   },
 };
+
+/** Readable labels for a list of categories, e.g. "Digital, Abstract". */
+export function categoryLabels(categories: readonly Category[]): string {
+  return categories.map((c) => CATEGORY_META[c].label).join(", ");
+}
 
 export const AVAILABILITY_META: Record<Availability, { label: string }> = {
   available: { label: "Available" },

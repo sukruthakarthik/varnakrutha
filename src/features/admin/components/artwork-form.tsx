@@ -15,7 +15,8 @@ import { createArtwork, updateArtwork } from "@/features/artworks/actions";
 import { artworkInputSchema, type ArtworkFormValues, type ArtworkInput } from "@/features/artworks/schemas";
 import { AVAILABILITY_META, CATEGORY_META } from "@/lib/constants";
 import { artworkPath } from "@/lib/site";
-import { AVAILABILITY, CATEGORIES, type Artwork } from "@/types";
+import { AVAILABILITY, CATEGORIES, MAX_CATEGORIES, type Artwork, type Category } from "@/types";
+import { cn } from "@/lib/utils";
 import { slugify } from "@/utils/format";
 import { adminKeys } from "../hooks";
 import { Field } from "./form-field";
@@ -29,7 +30,7 @@ function toFormValues(a?: Artwork): ArtworkFormValues {
     story: a?.story ?? "",
     year: a?.year ?? new Date().getFullYear(),
     medium: a?.medium ?? "",
-    category: a?.category ?? "heritage",
+    categories: a?.categories ?? [],
     width: a?.width ?? null,
     height: a?.height ?? null,
     price: a?.price ?? null,
@@ -60,7 +61,13 @@ export function ArtworkForm({ artwork, artistSlug }: { artwork?: Artwork; artist
     defaultValues: toFormValues(artwork),
   });
 
-  const [images, coverImage, category, slug] = watch(["images", "coverImage", "category", "slug"]);
+  const [images, coverImage, categories, slug] = watch(["images", "coverImage", "categories", "slug"]);
+
+  // Tags work like on/off switches: click to add a category, click again to remove it.
+  function toggleCategory(c: Category) {
+    const next = categories.includes(c) ? categories.filter((x) => x !== c) : [...categories, c];
+    setValue("categories", next, { shouldDirty: true, shouldValidate: true });
+  }
   const titleField = register("title", {
     onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
       if (!slugTouched) setValue("slug", slugify(e.target.value), { shouldValidate: true });
@@ -99,15 +106,36 @@ export function ArtworkForm({ artwork, artistSlug }: { artwork?: Artwork; artist
             <Field id="slug" label="URL slug" error={err("slug")} hint={artworkPath(slug || "…", artistSlug)} className="sm:col-span-2">
               <Input id="slug" aria-invalid={!!errors.slug} {...register("slug", { onChange: () => setSlugTouched(true) })} />
             </Field>
-            <Field id="category" label="Category" error={err("category")}>
-              <NativeSelect id="category" {...register("category")}>
-                {CATEGORIES.map((c) => (
-                  <option key={c} value={c}>
-                    {CATEGORY_META[c].label}
-                  </option>
-                ))}
-              </NativeSelect>
-            </Field>
+            <fieldset className="space-y-2 sm:col-span-2">
+              <legend className="text-sm font-medium leading-none">Categories</legend>
+              <div className="flex flex-wrap gap-2 pt-1">
+                {CATEGORIES.map((c) => {
+                  const selected = categories.includes(c);
+                  return (
+                    <button
+                      key={c}
+                      type="button"
+                      aria-pressed={selected}
+                      disabled={!selected && categories.length >= MAX_CATEGORIES}
+                      onClick={() => toggleCategory(c)}
+                      className={cn(
+                        "rounded-full border px-3.5 py-1.5 text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-40",
+                        selected
+                          ? "border-primary bg-primary text-primary-foreground"
+                          : "border-foreground/20 hover:border-foreground/50",
+                      )}
+                    >
+                      {CATEGORY_META[c].label}
+                    </button>
+                  );
+                })}
+              </div>
+              {err("categories") ? (
+                <p className="text-sm text-destructive">{err("categories")}</p>
+              ) : (
+                <p className="text-xs text-muted-foreground">Pick all that fit, up to {MAX_CATEGORIES}. A painting can be both Digital and Abstract.</p>
+              )}
+            </fieldset>
             <Field id="medium" label="Medium" error={err("medium")}>
               <Input id="medium" placeholder="Watercolor on paper" {...register("medium")} />
             </Field>
@@ -143,7 +171,8 @@ export function ArtworkForm({ artwork, artistSlug }: { artwork?: Artwork; artist
             <ImageManager
               images={images}
               cover={coverImage}
-              category={category}
+              // Uploads are filed under the first chosen category's folder.
+              category={CATEGORIES.find((c) => categories.includes(c)) ?? null}
               slug={slug}
               onChange={(next, cover) => {
                 setValue("images", next, { shouldDirty: true });

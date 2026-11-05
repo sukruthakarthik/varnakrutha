@@ -55,7 +55,7 @@ export function GalleryExplorer({ artworks, artists }: { artworks: Artwork[]; ar
     const byCategory: Partial<Record<Category, number>> = {};
     for (const a of artworks) {
       if (selectedArtist && a.artistId !== selectedArtist.id) continue;
-      byCategory[a.category] = (byCategory[a.category] ?? 0) + 1;
+      for (const c of a.categories) byCategory[c] = (byCategory[c] ?? 0) + 1;
     }
     return byCategory;
   }, [artworks, selectedArtist]);
@@ -64,11 +64,11 @@ export function GalleryExplorer({ artworks, artists }: { artworks: Artwork[]; ar
     const q = query.trim().toLowerCase();
     return artworks.filter((a) => {
       if (selectedArtist && a.artistId !== selectedArtist.id) return false;
-      if (category && a.category !== category) return false;
+      if (category && !a.categories.includes(category)) return false;
       if (!q) return true;
       return (
         a.title.toLowerCase().includes(q) ||
-        CATEGORY_META[a.category].label.toLowerCase().includes(q) ||
+        a.categories.some((c) => CATEGORY_META[c].label.toLowerCase().includes(q)) ||
         (a.medium?.toLowerCase().includes(q) ?? false) ||
         (byId.get(a.artistId)?.name.toLowerCase().includes(q) ?? false)
       );

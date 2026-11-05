@@ -17,6 +17,7 @@ import type {
 
 export interface ArtworkFilters {
   artistId?: string;
+  /** Matches artworks that include this category. */
   category?: Category;
   availability?: Availability;
   featured?: boolean;

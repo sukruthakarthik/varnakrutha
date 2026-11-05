@@ -60,7 +60,11 @@ async function load(): Promise<MockDb> {
     db.applications = (db.applications ?? []).map((a) => ({ ...a, artistId: a.artistId ?? null }));
     db.accounts ??= [];
     db.blockedEmails ??= [];
-    db.artworks = db.artworks.map((a) => ({ ...a, shippingFee: a.shippingFee ?? null }));
+    // Older saves stored a single `category`; turn it into the `categories` list.
+    db.artworks = db.artworks.map((a) => {
+      const { category, ...rest } = a as Artwork & { category?: Artwork["categories"][number] };
+      return { ...rest, shippingFee: a.shippingFee ?? null, categories: a.categories ?? [category ?? "other"] };
+    });
     db.orders ??= [];
     db.orderEvents ??= [];
     db.webhookEvents ??= [];

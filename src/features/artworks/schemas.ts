@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { AVAILABILITY, CATEGORIES } from "@/types";
+import { AVAILABILITY, CATEGORIES, MAX_CATEGORIES } from "@/types";
 
 const optionalText = (max: number) =>
   z
@@ -29,7 +29,12 @@ export const artworkInputSchema = z.object({
     .transform((v) => (v === null || Number.isNaN(v) ? null : v))
     .pipe(z.number().int().min(1900).max(2100).nullable()),
   medium: optionalText(120),
-  category: z.enum(CATEGORIES),
+  categories: z
+    .array(z.enum(CATEGORIES))
+    .min(1, "Pick at least one category")
+    .max(MAX_CATEGORIES, `Pick up to ${MAX_CATEGORIES} categories`)
+    // Drop duplicates and keep a stable order so the same choice is always saved the same way.
+    .transform((list) => CATEGORIES.filter((c) => list.includes(c))),
   width: optionalPositive,
   height: optionalPositive,
   price: optionalPositive,

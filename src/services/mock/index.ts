@@ -38,7 +38,7 @@ function toArtwork(
     story: input.story,
     year: input.year,
     medium: input.medium,
-    category: input.category,
+    categories: input.categories,
     width: input.width,
     height: input.height,
     price: input.price,
@@ -120,7 +120,7 @@ export function createMockDataSource(): DataSource {
           .filter(
             (a) =>
               (!filters.artistId || a.artistId === filters.artistId) &&
-              (!filters.category || a.category === filters.category) &&
+              (!filters.category || a.categories.includes(filters.category)) &&
               (!filters.availability || a.availability === filters.availability) &&
               (filters.featured === undefined || a.featured === filters.featured),
           )

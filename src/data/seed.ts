@@ -236,7 +236,7 @@ export const seedArtworks: Artwork[] = defs.map((d) => {
     story: d.story,
     year: d.year,
     medium: d.medium,
-    category: d.category,
+    categories: [d.category],
     width: d.width,
     height: d.height,
     price: d.price,

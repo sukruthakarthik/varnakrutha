@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CATEGORY_META } from "@/lib/constants";
+import { categoryLabels } from "@/lib/constants";
 import { artworkPath, siteConfig } from "@/lib/site";
 import { cn } from "@/lib/utils";
 import type { Artwork } from "@/types";
@@ -59,7 +59,7 @@ export function ArtworkCard({
             <h3 className="font-serif text-[1.35rem] leading-snug transition-colors group-hover:text-primary">{artwork.title}</h3>
             {showArtist && artist && <p className="font-serif text-sm italic text-foreground/70">by {artist.name}</p>}
             <p className="text-[0.7rem] uppercase tracking-[0.18em] text-muted-foreground">
-              {[artwork.medium, artwork.year ?? CATEGORY_META[artwork.category].label].filter(Boolean).join(" · ")}
+              {[artwork.medium, artwork.year ?? categoryLabels(artwork.categories.slice(0, 1))].filter(Boolean).join(" · ")}
             </p>
           </div>
           {artwork.availability !== "available" && <AvailabilityBadge availability={artwork.availability} />}

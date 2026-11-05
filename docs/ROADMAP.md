@@ -23,7 +23,7 @@ The data layer is already built for many artists:
 | **Database** | Every artwork and inquiry has an `artist_id`; About content (journey, inspiration, skills, techniques) and profile photo are per-artist, edited at `/admin/profile` | Per-artist tagline, contact email, theme colour, plan |
 | **Security (RLS)** | Artists edit only their own data and read only their own inquiries | Nothing more needed |
 | **Storage** | Separate folder per artist | Per-artist limits (e.g. Free = 20 artworks) |
-| **Public site** | Home and About belong to the site's own artist (env var); `/artists`, `/artists/[artist]` and `/gallery` show every approved artist | Per-artist home pages and branding |
+| **Public site** | Home, `/artists` and `/gallery` show every approved artist; each artist's portfolio at `/artists/[artist]` uses their chosen hero layout; About belongs to the site's own artist (env var) | Per-artist home pages and branding |
 | **Admin** | Resolves the artist from the logged-in user's membership; roles `admin` and `artist` | An artist switcher for users who manage several |
 | **Sign-up** | None; users are created by hand in Supabase | Self sign-up, email verification, onboarding wizard |
 | **Platform control** | Platform admins (`platform_admins`) review profile changes at `/admin/reviews` and artist applications at `/admin/applications` | Suspend and feature artists; platform stats |

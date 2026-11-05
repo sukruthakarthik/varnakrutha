@@ -1,22 +1,24 @@
-import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { SectionHeading } from "@/components/common/section-heading";
 import { Button } from "@/components/ui/button";
-import { HomeHero } from "@/features/artists/components/home-hero";
+import { Hero } from "@/features/artists/components/hero";
 import { ArtworkCard } from "@/features/artworks/components/artwork-card";
 import { ArtworkImage } from "@/features/artworks/components/artwork-image";
 import { CATEGORY_META } from "@/lib/constants";
+import { artistBrand, artistPath, artworkPath, siteConfig } from "@/lib/site";
 import { cn } from "@/lib/utils";
-import { getCurrentArtist, getPublicDataSource } from "@/services";
+import { getPublishedArtists, getPublishedArtworks } from "@/services";
 import { CATEGORIES } from "@/types";
 
 export const revalidate = 3600;
 
+// The home page is the platform's front door: every approved artist's work, newest first.
+// Each artist's own portfolio (with the hero style they chose) lives at /artists/<slug>.
 export default async function HomePage() {
-  const artist = await getCurrentArtist();
-  const ds = await getPublicDataSource();
-  const artworks = await ds.artworks.list({ artistId: artist.id });
+  const [artists, artworks] = await Promise.all([getPublishedArtists(), getPublishedArtworks()]);
+  const artistById = new Map(artists.map((a) => [a.id, { name: a.name, slug: a.slug }]));
+  const credit = (artistId: string) => artistById.get(artistId) ?? { name: "", slug: siteConfig.defaultArtistSlug };
 
   const hero = artworks.find((a) => a.featured) ?? artworks[0];
   // The hero already shows one artwork large, so the Featured section skips it.
@@ -28,11 +30,33 @@ export default async function HomePage() {
     count: artworks.filter((a) => a.categories.includes(c)).length,
     cover: artworks.find((a) => a.categories.includes(c) && a.coverImage)?.coverImage ?? null,
   })).filter((c) => c.count > 0);
+  // Artists with work to show first, then the rest; the section shows a few and links to all.
+  const meet = [...artists]
+    .map((artist) => ({ artist, works: artworks.filter((a) => a.artistId === artist.id) }))
+    .sort((a, b) => Number(b.works.length > 0) - Number(a.works.length > 0))
+    .slice(0, 3);
 
   return (
     <>
       {/* 1. Hero */}
-      <HomeHero artist={artist} artwork={hero} />
+      <Hero
+        layout="wide"
+        content={{
+          eyebrow: artists.length > 1 ? `Original paintings · ${artists.length} artists` : "Original paintings",
+          lead: siteConfig.name,
+          emphasis: artists.length > 1 ? "Art by many hands" : "Original art",
+          tagline: siteConfig.tagline,
+          primary: { href: "/gallery", label: "View Gallery" },
+          secondary: { href: "/artists", label: "Meet the artists" },
+        }}
+        feature={
+          hero && {
+            artwork: hero,
+            href: artworkPath(hero.slug, credit(hero.artistId).slug),
+            credit: credit(hero.artistId).name || undefined,
+          }
+        }
+      />
 
       {/* 2. Featured — editorial: one large work, the rest stacked beside it */}
       {featured.length > 0 && (
@@ -58,6 +82,8 @@ export default async function HomePage() {
                 </div>
                 <ArtworkCard
                   artwork={a}
+                  artist={credit(a.artistId)}
+                  showArtist
                   sizes={i === 0 ? "(min-width: 1024px) 55vw, 100vw" : "(min-width: 1024px) 30vw, (min-width: 640px) 50vw, 100vw"}
                 />
               </li>
@@ -66,23 +92,45 @@ export default async function HomePage() {
         </section>
       )}
 
-      {/* 3. About */}
-      <section className="bg-secondary/60 py-20 md:py-32">
-        <div className="container-page grid items-center gap-12 md:grid-cols-[0.8fr_1.2fr] md:gap-24">
-          <div className="reveal relative mx-auto aspect-[4/5] w-full max-w-sm overflow-hidden rounded-t-full bg-secondary shadow-[0_30px_60px_-30px_rgb(60_38_20/0.45)]">
-            {artist.profileImage && (
-              <Image src={artist.profileImage} alt={`Portrait of ${artist.name}`} fill sizes="(min-width: 768px) 30vw, 90vw" className="object-cover" />
-            )}
+      {/* 3. Meet the artists */}
+      {meet.length > 0 && (
+        <section className="bg-secondary/60 py-20 md:py-32" aria-labelledby="artists-heading">
+          <div className="container-page">
+            <div className="reveal mb-14 flex flex-wrap items-end justify-between gap-6 md:mb-20">
+              <SectionHeading id="artists-heading" eyebrow="The artists" title="Meet the Artists" />
+              <Link href="/artists" className="link-draw group inline-flex items-center gap-2 text-xs uppercase tracking-[0.18em]">
+                All artists <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" aria-hidden />
+              </Link>
+            </div>
+            <ul className="grid gap-x-10 gap-y-14 sm:grid-cols-2 lg:grid-cols-3">
+              {meet.map(({ artist, works }) => (
+                <li key={artist.id} className="reveal">
+                  <Link
+                    href={artistPath(artist.slug)}
+                    className="group block rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-4"
+                  >
+                    <div className="relative mx-auto aspect-[4/5] w-full max-w-xs overflow-hidden rounded-t-full bg-secondary shadow-[0_30px_60px_-34px_rgb(60_38_20/0.5)]">
+                      <ArtworkImage
+                        src={artist.profileImage ?? works[0]?.coverImage ?? null}
+                        alt={`Portrait of ${artist.name}`}
+                        sizes="(min-width: 1024px) 25vw, (min-width: 640px) 45vw, 90vw"
+                        className="duration-[1400ms] group-hover:scale-[1.04]"
+                      />
+                    </div>
+                    <div className="mt-6 text-center">
+                      <h3 className="font-serif text-3xl transition-colors group-hover:text-primary">{artist.name}</h3>
+                      <p className="mt-1 font-serif text-base italic text-foreground/70">{artistBrand(artist.name)}</p>
+                      <p className="mt-2 text-[0.7rem] uppercase tracking-[0.18em] text-muted-foreground">
+                        {works.length} {works.length === 1 ? "work" : "works"}
+                      </p>
+                    </div>
+                  </Link>
+                </li>
+              ))}
+            </ul>
           </div>
-          <div className="reveal space-y-8">
-            <SectionHeading eyebrow="About the artist" title={artist.name} />
-            <p className="text-pretty font-serif text-2xl leading-snug text-foreground/85 md:text-[1.75rem]">{artist.bio}</p>
-            <Button asChild variant="outline">
-              <Link href="/about">Read the full story</Link>
-            </Button>
-          </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* 4. Categories */}
       <section className="container-page py-20 md:py-32">
@@ -125,7 +173,7 @@ export default async function HomePage() {
       {recent.length > 0 && (
         <section className="py-20 md:py-32" aria-labelledby="recent-heading">
           <div className="container-page reveal mb-12 flex flex-wrap items-end justify-between gap-6">
-            <SectionHeading id="recent-heading" eyebrow="From the studio" title="Recent Works" />
+            <SectionHeading id="recent-heading" eyebrow="Fresh on the walls" title="Recent Works" />
             <p className="hidden text-xs uppercase tracking-[0.18em] text-muted-foreground md:block">Scroll to browse →</p>
           </div>
           <ul
@@ -134,7 +182,7 @@ export default async function HomePage() {
           >
             {recent.map((a) => (
               <li key={a.id} className="shrink-0 snap-start">
-                <Link href={`/artworks/${a.slug}`} className="group block rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-4">
+                <Link href={artworkPath(a.slug, credit(a.artistId).slug)} className="group block rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-4">
                   <div
                     className="relative h-64 transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:-translate-y-2 md:h-[22rem]"
                     style={{ aspectRatio: a.width && a.height ? `${a.width} / ${a.height}` : "4 / 5" }}
@@ -142,7 +190,9 @@ export default async function HomePage() {
                     <ArtworkImage src={a.coverImage} alt={a.title} sizes="(min-width: 768px) 30rem, 80vw" className="art-shadow" />
                   </div>
                   <p className="mt-5 font-serif text-lg transition-colors group-hover:text-primary">{a.title}</p>
-                  <p className="text-[0.7rem] uppercase tracking-[0.18em] text-muted-foreground">{a.medium}</p>
+                  <p className="text-[0.7rem] uppercase tracking-[0.18em] text-muted-foreground">
+                    {[credit(a.artistId).name && `by ${credit(a.artistId).name}`, a.medium].filter(Boolean).join(" · ")}
+                  </p>
                 </Link>
               </li>
             ))}
@@ -166,7 +216,7 @@ export default async function HomePage() {
           </p>
           <Button asChild size="lg" className="group mt-10 bg-[#faf7f2] text-[#1d1a17] hover:bg-[#e9c9a8]">
             <Link href="/contact">
-              Contact the Artist <ArrowRight className="transition-transform group-hover:translate-x-1" aria-hidden />
+              Get in touch <ArrowRight className="transition-transform group-hover:translate-x-1" aria-hidden />
             </Link>
           </Button>
         </div>

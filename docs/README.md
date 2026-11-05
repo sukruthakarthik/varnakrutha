@@ -1,6 +1,6 @@
 # Varnakrutha
 
-An online art gallery at [varnakrutha.in](https://varnakrutha.in): the portfolio of **Sukrutha Karthik** (the home page, "Art by Sukrutha") and of featured artists, each with their own "Art by <name>" page.
+An online art gallery at [varnakrutha.in](https://varnakrutha.in): a home page showing every approved artist's work, and a portfolio page for each artist ("Art by <name>" at `/artists/<slug>`) that opens with the hero style they chose in their profile.
 
 **Stack:** Next.js 15 (App Router) · TypeScript (strict) · Tailwind CSS v4 · ShadCN UI · TanStack Query · React Hook Form + Zod · Supabase (Postgres, Storage, Auth) · Vercel
 

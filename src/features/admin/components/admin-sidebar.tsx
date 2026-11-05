@@ -7,6 +7,7 @@ import {
   ExternalLink,
   FlaskConical,
   Image as ImageIcon,
+  Images,
   KeyRound,
   LayoutDashboard,
   LogOut,
@@ -40,6 +41,8 @@ interface PlatformCounts {
 }
 
 const PLATFORM_NAV = [
+  // Read-only view of every artist's artworks; artists still manage their own listings.
+  { href: "/admin/all-artworks", label: "All artworks", icon: Images, count: null },
   { href: "/admin/reviews", label: "Reviews", icon: ClipboardCheck, count: "reviews" },
   { href: "/admin/applications", label: "Applications", icon: UserPlus, count: "applications" },
 ] as const;
@@ -74,7 +77,7 @@ export function AdminSidebar({
       ...item,
       badge: 0,
     })),
-    ...(platformCounts ? PLATFORM_NAV.map((item) => ({ ...item, badge: platformCounts[item.count] })) : []),
+    ...(platformCounts ? PLATFORM_NAV.map((item) => ({ ...item, badge: item.count ? platformCounts[item.count] : 0 })) : []),
   ];
   const isActive = (href: string) => pathname.startsWith(href);
 

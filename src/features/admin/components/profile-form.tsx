@@ -124,7 +124,7 @@ export function ProfileForm({
         <Card>
           <CardHeader>
             <CardTitle>About you</CardTitle>
-            <CardDescription>Shown on the About page and the home page.</CardDescription>
+            <CardDescription>Shown on your portfolio page (and the About page for the site&apos;s own artist).</CardDescription>
           </CardHeader>
           <CardContent className="space-y-5">
             <Field id="name" label="Name" error={err("name")}>
@@ -134,7 +134,7 @@ export function ProfileForm({
               id="tagline"
               label="Tagline"
               error={err("tagline")}
-              hint={`Shown under your name on the home page. ${taglineLength}/${TAGLINE_MAX_LENGTH} characters.`}
+              hint={`Shown under your name at the top of your portfolio page. ${taglineLength}/${TAGLINE_MAX_LENGTH} characters.`}
             >
               <Input
                 id="tagline"
@@ -229,8 +229,8 @@ export function ProfileForm({
 
         <Card>
           <CardHeader>
-            <CardTitle>Home page layout</CardTitle>
-            <CardDescription>How your name and featured painting are arranged at the top of the home page.</CardDescription>
+            <CardTitle>Portfolio page layout</CardTitle>
+            <CardDescription>How your name and featured painting are arranged at the top of your portfolio page.</CardDescription>
           </CardHeader>
           <CardContent>
             <HeroLayoutPicker

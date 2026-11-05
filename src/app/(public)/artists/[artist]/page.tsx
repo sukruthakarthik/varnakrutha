@@ -3,10 +3,12 @@ import { Suspense } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { SectionHeading } from "@/components/common/section-heading";
 import { SocialLinks } from "@/components/common/social-links";
 import { Button } from "@/components/ui/button";
+import { Hero } from "@/features/artists/components/hero";
 import { GalleryExplorer } from "@/features/artworks/components/gallery-explorer";
-import { artistBrand, artistFirstName, artistPath, defaultOpenGraph, siteConfig } from "@/lib/site";
+import { artistBrand, artistFirstName, artistPath, artworkPath, defaultOpenGraph, isSiteArtist, siteConfig } from "@/lib/site";
 import { getPublicDataSource, getPublishedArtist } from "@/services";
 import { truncate } from "@/utils/format";
 import GalleryLoading from "../../gallery/loading";
@@ -44,49 +46,54 @@ export default async function ArtistPage({ params }: Props) {
   const artist = await getPublishedArtist((await params).artist);
   if (!artist) notFound();
   const artworks = await (await getPublicDataSource()).artworks.list({ artistId: artist.id });
-  const isOwnArtist = artist.slug === siteConfig.defaultArtistSlug;
+  const isOwnArtist = isSiteArtist(artist.slug);
+  const contactHref = isOwnArtist ? "/contact" : `/contact?artist=${encodeURIComponent(artist.slug)}`;
+  const heroArtwork = artworks.find((a) => a.featured) ?? artworks[0];
 
   return (
-    <div className="py-16 md:py-20">
-      <section className="container-page grid items-center gap-12 md:grid-cols-[0.7fr_1.3fr] md:gap-20">
-        <div className="relative mx-auto aspect-[4/5] w-full max-w-xs overflow-hidden rounded-t-full bg-secondary shadow-[0_30px_60px_-30px_rgb(60_38_20/0.45)] animate-in fade-in fill-mode-both duration-1000">
-          {artist.profileImage && (
-            <Image
-              src={artist.profileImage}
-              alt={`Portrait of ${artist.name}`}
-              fill
-              priority
-              sizes="(min-width: 768px) 25vw, 80vw"
-              className="object-cover"
-            />
-          )}
-        </div>
-        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-3 fill-mode-both delay-150 duration-1000">
-          <p className="eyebrow">{artist.name}</p>
-          <h1 className="text-balance text-5xl leading-[1.02] tracking-[-0.015em] md:text-7xl">
-            Art by <span className="italic text-primary">{artistFirstName(artist.name)}</span>
-          </h1>
-          {artist.tagline && <p className="text-lg text-foreground/70">{artist.tagline}</p>}
-          {artist.bio && (
-            <p className="max-w-2xl text-pretty font-serif text-xl leading-relaxed text-foreground/85">{artist.bio}</p>
-          )}
-          <div className="flex flex-wrap items-center gap-4">
-            <Button asChild variant="outline">
-              <Link href={isOwnArtist ? "/contact" : `/contact?artist=${encodeURIComponent(artist.slug)}`}>
-                Contact about this artist&apos;s work
-              </Link>
-            </Button>
-            {isOwnArtist && (
-              <Link href="/about" className="link-draw text-xs uppercase tracking-[0.18em]">
-                Full story
-              </Link>
+    <>
+      {/* The artist's portfolio opens with the hero style they chose in their profile. */}
+      <Hero
+        layout={artist.heroLayout}
+        content={{
+          eyebrow: `Original paintings · ${siteConfig.name}`,
+          lead: "Art by",
+          emphasis: artistFirstName(artist.name),
+          tagline: artist.tagline ?? `Original artworks by ${artist.name}.`,
+          primary: { href: "#works", label: "View works" },
+          secondary: { href: contactHref, label: "Commission a piece" },
+        }}
+        feature={heroArtwork && { artwork: heroArtwork, href: artworkPath(heroArtwork.slug, artist.slug) }}
+      />
+
+      <section className="bg-secondary/60 py-20 md:py-28">
+        <div className="container-page grid items-center gap-12 md:grid-cols-[0.8fr_1.2fr] md:gap-24">
+          <div className="reveal relative mx-auto aspect-[4/5] w-full max-w-sm overflow-hidden rounded-t-full bg-secondary shadow-[0_30px_60px_-30px_rgb(60_38_20/0.45)]">
+            {artist.profileImage && (
+              <Image src={artist.profileImage} alt={`Portrait of ${artist.name}`} fill sizes="(min-width: 768px) 30vw, 90vw" className="object-cover" />
             )}
-            <SocialLinks artist={artist} />
+          </div>
+          <div className="reveal space-y-8">
+            <SectionHeading eyebrow="About the artist" title={artist.name} />
+            {artist.bio && (
+              <p className="text-pretty font-serif text-2xl leading-snug text-foreground/85 md:text-[1.75rem]">{artist.bio}</p>
+            )}
+            <div className="flex flex-wrap items-center gap-4">
+              <Button asChild variant="outline">
+                <Link href={contactHref}>Contact about this artist&apos;s work</Link>
+              </Button>
+              {isOwnArtist && (
+                <Link href="/about" className="link-draw text-xs uppercase tracking-[0.18em]">
+                  Full story
+                </Link>
+              )}
+              <SocialLinks artist={artist} />
+            </div>
           </div>
         </div>
       </section>
 
-      <section className="container-page mt-20 space-y-10 md:mt-28" aria-labelledby="works-heading">
+      <section id="works" className="container-page scroll-mt-24 space-y-10 py-20 md:py-28" aria-labelledby="works-heading">
         <h2 id="works-heading" className="text-4xl md:text-5xl">
           Works by <span className="italic">{artist.name}</span>
         </h2>
@@ -94,6 +101,6 @@ export default async function ArtistPage({ params }: Props) {
           <GalleryExplorer artworks={artworks} artists={[{ id: artist.id, name: artist.name, slug: artist.slug }]} />
         </Suspense>
       </section>
-    </div>
+    </>
   );
 }

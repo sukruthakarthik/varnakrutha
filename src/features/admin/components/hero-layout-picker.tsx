@@ -37,7 +37,7 @@ function Sketch({ layout }: { layout: HeroLayout }) {
 
 export function HeroLayoutPicker({ value, onChange }: { value: HeroLayout; onChange: (layout: HeroLayout) => void }) {
   return (
-    <div role="radiogroup" aria-label="Home page layout" className="grid gap-3">
+    <div role="radiogroup" aria-label="Portfolio page layout" className="grid gap-3">
       {HERO_LAYOUTS.map((layout) => {
         const selected = value === layout;
         return (

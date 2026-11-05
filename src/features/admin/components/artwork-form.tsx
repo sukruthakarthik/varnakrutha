@@ -269,7 +269,7 @@ export function ArtworkForm({ artwork, artistSlug }: { artwork?: Artwork; artist
             </Field>
             <div className="flex items-center gap-3">
               <input id="featured" type="checkbox" className="size-4 accent-primary" {...register("featured")} />
-              <Label htmlFor="featured">Feature on the home page</Label>
+              <Label htmlFor="featured">Feature this artwork (top of your portfolio page, and in Featured on the home page)</Label>
             </div>
           </CardContent>
         </Card>

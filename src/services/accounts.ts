@@ -49,6 +49,24 @@ export async function provisionArtistAccount(application: ArtistApplication): Pr
 
 // ─── Supabase ───────────────────────────────────────────────────────
 
+/** Where the links in Supabase's emails land: /auth/confirm signs the artist in, then asks for a new password. */
+const SET_PASSWORD_PATH = "/auth/confirm?next=/admin/set-password";
+
+/**
+ * Emails an existing login a link to set a password (Supabase's "Reset password" email). Used after accepting
+ * when the email already had an account, and by Applications → "Send set-password email" to resend it.
+ */
+export async function sendSetPasswordEmail(email: string): Promise<void> {
+  if (!isSupabase) {
+    throw new RepositoryError("Emails are only sent with Supabase. In mock mode, pass on the temporary password instead.", "invalid");
+  }
+  const { createAdminSupabaseClient } = await import("@/lib/supabase/admin");
+  const { error } = await createAdminSupabaseClient().auth.resetPasswordForEmail(email.trim().toLowerCase(), {
+    redirectTo: absoluteUrl(SET_PASSWORD_PATH),
+  });
+  if (error) throw new RepositoryError(`Couldn't send the set-password email: ${error.message}`);
+}
+
 async function findUserIdByEmail(admin: SupabaseClient, email: string): Promise<string | null> {
   for (let page = 1; page <= 50; page++) {
     const { data, error } = await admin.auth.admin.listUsers({ page, perPage: 200 });
@@ -64,7 +82,7 @@ async function provisionWithSupabase(application: ArtistApplication): Promise<Pr
   const { createAdminSupabaseClient } = await import("@/lib/supabase/admin");
   const admin = createAdminSupabaseClient();
   const email = application.email.trim().toLowerCase();
-  const setPasswordUrl = absoluteUrl("/auth/confirm?next=/admin/set-password");
+  const setPasswordUrl = absoluteUrl(SET_PASSWORD_PATH);
 
   // Safe to repeat: an earlier attempt may have created the login or the artist before failing,
   // so whatever already exists is reused, and the applicant is always emailed a link at the end.
@@ -141,10 +159,7 @@ async function provisionWithSupabase(application: ArtistApplication): Promise<Pr
 
     // 3. The email. A new user already got the invitation; an existing account gets a set-password link
     //    (the "Reset password" email), which also works if they never finished an earlier invitation.
-    if (!createdUser) {
-      const { error: mailError } = await admin.auth.resetPasswordForEmail(email, { redirectTo: setPasswordUrl });
-      if (mailError) throw new RepositoryError(`Couldn't send the set-password email: ${mailError.message}`);
-    }
+    if (!createdUser) await sendSetPasswordEmail(email);
     return { artist, access: createdUser ? "invited" : "password-link" };
   } catch (error) {
     // Undo only what this attempt created, so it can simply be tried again.

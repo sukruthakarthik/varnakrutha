@@ -13,6 +13,7 @@ import {
   deleteApplication,
   markApplicationNotSpam,
   markApplicationSpam,
+  resendSetPasswordEmail,
   updateApplication,
 } from "@/features/applications/actions";
 import { APPLICATION_REPLY_DAYS } from "@/lib/constants";
@@ -280,6 +281,20 @@ function ApplicationCard({ application: a, sameEmailCount }: { application: Arti
                 trigger={
                   <Button size="sm" variant="ghost" disabled={pending}>
                     <Check aria-hidden /> {a.status === "accepted" ? "Create account" : "Accept"}
+                  </Button>
+                }
+              />
+            )}
+            {a.artistId && (
+              <ConfirmDialog
+                title="Send a set-password email?"
+                description={`${a.email} gets an email with a link to set a password. They then sign in at ${siteConfig.url}/admin/login.`}
+                confirmLabel="Send email"
+                confirmVariant="default"
+                onConfirm={() => run(() => resendSetPasswordEmail(a.id), `Set-password email sent to ${a.email}`)}
+                trigger={
+                  <Button size="sm" variant="ghost" disabled={pending}>
+                    <KeyRound aria-hidden /> Send set-password email
                   </Button>
                 }
               />

@@ -75,7 +75,7 @@ Go to **Project Settings → API Keys** and copy:
 ### 1.7 Artist account emails
 Accepting an application at `/admin/applications` creates the artist and emails them an invitation to choose a password. Artists who forget their password use **Forgot your password?** on the sign-in page. Both emails must link back to the site:
 
-1. **Authentication → URL Configuration**: set **Site URL** to your live address (`https://varnakrutha.in`), and add `https://varnakrutha.in/**` under **Redirect URLs**.
+1. **Authentication → URL Configuration**: set **Site URL** to your live address, exactly as `NEXT_PUBLIC_SITE_URL` in Vercel (e.g. `https://www.varnakrutha.in`), and add both `https://varnakrutha.in/**` and `https://www.varnakrutha.in/**` under **Redirect URLs**. A link pointing anywhere else (such as `localhost`) won't work for artists.
 2. **Authentication → Emails → Invite user**: replace the link in the template with
    `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=invite&next=/admin/set-password`
 3. **Authentication → Emails → Reset password**: replace the link with
@@ -90,6 +90,8 @@ Accepting an application at `/admin/applications` creates the artist and emails 
    | Host / Port | `smtp.gmail.com` / `465` |
    | Username | `varnakrutha@gmail.com` |
    | Password | A Google **App Password**, not the Gmail password or a passkey. Turn on 2-Step Verification with a phone or Google prompt, then create one at [myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords). Google shows the 16 characters only once. |
+
+5. **If an artist says the email never came:** Admin → Applications → their accepted application → **Send set-password email**. It sends the Reset password email from step 3; the link expires after an hour (Authentication → Providers → Email → OTP expiry). They can also use **Forgot your password?** on the sign-in page themselves.
 
    Gmail allows about 500 emails a day. Only accepting an artist and password resets send email; applications don't.
 

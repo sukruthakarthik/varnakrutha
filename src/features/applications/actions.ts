@@ -7,7 +7,7 @@ import { requirePlatformAdminAction } from "@/lib/auth";
 import { rateLimit } from "@/lib/rate-limit";
 import { getClientIp } from "@/lib/request";
 import { getPublicDataSource } from "@/services";
-import { provisionArtistAccount, type ProvisionedArtist } from "@/services/accounts";
+import { provisionArtistAccount, sendSetPasswordEmail, type ProvisionedArtist } from "@/services/accounts";
 import { checkApplicantEmail } from "@/services/applicant-check";
 import { formatDate } from "@/utils/format";
 import { applicationInputSchema, applicationStatusSchema, type ApplicationFormValues } from "./schemas";
@@ -114,6 +114,23 @@ export async function acceptApplication(id: string): Promise<ActionResult<Provis
     return { ok: true, data: provisioned };
   } catch (error) {
     return actionError(error, "Couldn't create the artist's account. Please try again.");
+  }
+}
+
+/**
+ * Emails an accepted applicant a fresh link to set their password, e.g. when the invitation never arrived
+ * or has expired. The link signs them in at /admin/set-password; afterwards they sign in at /admin/login.
+ */
+export async function resendSetPasswordEmail(id: string): Promise<ActionResult> {
+  try {
+    const admin = await requirePlatformAdminAction();
+    const application = (await admin.dataSource.applications.list()).find((a) => a.id === z.string().uuid().parse(id));
+    if (!application) return { ok: false, error: "Application not found" };
+    if (!application.artistId) return { ok: false, error: "Accept the application first; that creates the account." };
+    await sendSetPasswordEmail(application.email);
+    return { ok: true, data: undefined };
+  } catch (error) {
+    return actionError(error, "Couldn't send the email. Please try again in a minute.");
   }
 }
 

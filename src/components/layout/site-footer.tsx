@@ -72,7 +72,7 @@ export function SiteFooter({ artist }: { artist: Artist }) {
             Artists: get featured
           </Link>
           {" · "}
-          <Link href="/admin" className="underline-offset-4 hover:text-primary hover:underline">
+          <Link href="/admin/dashboard" className="underline-offset-4 hover:text-primary hover:underline">
             Artist login
           </Link>
         </p>

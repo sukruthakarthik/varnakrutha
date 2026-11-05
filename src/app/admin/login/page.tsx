@@ -10,7 +10,7 @@ export const metadata = { title: "Sign in" };
 type Props = { searchParams: Promise<{ error?: string }> };
 
 export default async function AdminLoginPage({ searchParams }: Props) {
-  if (await getAdmin()) redirect("/admin");
+  if (await getAdmin()) redirect("/admin/dashboard");
   const { error } = await searchParams;
 
   return (

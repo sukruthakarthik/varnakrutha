@@ -24,7 +24,7 @@ import { signOut } from "../auth-actions";
 
 // Artists manage their own art and profile; inquiries are handled by admins.
 const NAV: { href: string; label: string; icon: typeof LayoutDashboard; roles: Role[] }[] = [
-  { href: "/admin", label: "Dashboard", icon: LayoutDashboard, roles: ["admin", "artist"] },
+  { href: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard, roles: ["admin", "artist"] },
   { href: "/admin/artworks", label: "Artworks", icon: ImageIcon, roles: ["admin", "artist"] },
   { href: "/admin/inquiries", label: "Inquiries", icon: MessageSquare, roles: ["admin"] },
   { href: "/admin/orders", label: "Orders", icon: Receipt, roles: ["admin", "artist"] },
@@ -76,13 +76,13 @@ export function AdminSidebar({
     })),
     ...(platformCounts ? PLATFORM_NAV.map((item) => ({ ...item, badge: platformCounts[item.count] })) : []),
   ];
-  const isActive = (href: string) => (href === "/admin" ? pathname === href : pathname.startsWith(href));
+  const isActive = (href: string) => pathname.startsWith(href);
 
   return (
     <aside className="border-b border-border bg-background md:sticky md:top-0 md:h-dvh md:w-60 md:shrink-0 md:border-b-0 md:border-r">
       <div className="flex h-full flex-col gap-4 p-4 md:p-6">
         <div>
-          <Link href="/admin" className="font-serif text-xl">
+          <Link href="/admin/dashboard" className="font-serif text-xl">
             <Wordmark />
           </Link>
           <p className="text-xs text-muted-foreground">

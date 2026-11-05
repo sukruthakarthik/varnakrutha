@@ -16,7 +16,7 @@ An online art gallery at [varnakrutha.in](https://varnakrutha.in): the portfolio
 | **About** | Portrait, biography, journey, inspiration, skills, techniques, social links |
 | **Contact** | Validated form (RHF + Zod on the client and server), honeypot, rate limiting, saved to the database; optional email and WhatsApp click-to-chat links |
 | **Privacy** | `/privacy` policy page (India's DPDP Act), linked from the contact form and footer |
-| **Admin** (`/admin`) | Dashboard stats; add, edit and delete artworks; set available, reserved or sold; image upload with in-browser compression, reorder and cover selection; inquiry management |
+| **Admin** (`/admin/dashboard`) | Dashboard stats; add, edit and delete artworks; set available, reserved or sold; image upload with in-browser compression, reorder and cover selection; inquiry management |
 | **SEO** | Per-page metadata, Open Graph and Twitter cards, generated OG image, `robots.txt`, `sitemap.xml` |
 | **Quality** | Error boundaries, loading skeletons, empty states, WCAG-minded markup (skip link, focus rings, aria labels, AA contrast, reduced motion) |
 

@@ -70,7 +70,7 @@ export async function signIn(_prev: SignInState, formData: FormData): Promise<Si
       const artistId = await verifyMockArtistLogin(email, password);
       if (!artistId) return { error: "Invalid email or password." };
       await startMockSession(secret, { role: "artist", artistId });
-      redirect("/admin");
+      redirect("/admin/dashboard");
     }
 
     const expected = process.env.ADMIN_PASSWORD;
@@ -79,7 +79,7 @@ export async function signIn(_prev: SignInState, formData: FormData): Promise<Si
     }
     if (!safeEqual(password, expected)) return { error: "Incorrect password." };
     await startMockSession(secret, { role: "admin", artistId: null });
-    redirect("/admin");
+    redirect("/admin/dashboard");
   }
 
   if (!email) return { error: "Please enter your email." };
@@ -92,7 +92,7 @@ export async function signIn(_prev: SignInState, formData: FormData): Promise<Si
     await supabase.auth.signOut();
     return { error: "This account isn't linked to an artist yet." };
   }
-  redirect("/admin");
+  redirect("/admin/dashboard");
 }
 
 export async function signOut(): Promise<void> {
@@ -140,5 +140,5 @@ export async function setPassword(_prev: FormState, formData: FormData): Promise
   const supabase = await createServerSupabaseClient();
   const { error } = await supabase.auth.updateUser({ password: parsed.data.password });
   if (error) return { error: "Your link may have expired. Request a new one from the sign-in page." };
-  redirect("/admin");
+  redirect("/admin/dashboard");
 }

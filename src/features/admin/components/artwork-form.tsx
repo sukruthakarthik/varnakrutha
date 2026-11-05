@@ -14,7 +14,7 @@ import { Label } from "@/components/ui/label";
 import { createArtwork, updateArtwork } from "@/features/artworks/actions";
 import { artworkInputSchema, type ArtworkFormValues, type ArtworkInput } from "@/features/artworks/schemas";
 import { AVAILABILITY_META, CATEGORY_META } from "@/lib/constants";
-import { artworkPath } from "@/lib/site";
+import { absoluteUrl, artworkPath } from "@/lib/site";
 import { AVAILABILITY, CATEGORIES, MAX_CATEGORIES, type Artwork, type Category } from "@/types";
 import { cn } from "@/lib/utils";
 import { slugify } from "@/utils/format";
@@ -103,8 +103,29 @@ export function ArtworkForm({ artwork, artistSlug }: { artwork?: Artwork; artist
             <Field id="title" label="Title" error={err("title")} className="sm:col-span-2">
               <Input id="title" aria-invalid={!!errors.title} {...titleField} />
             </Field>
-            <Field id="slug" label="URL slug" error={err("slug")} hint={artworkPath(slug || "…", artistSlug)} className="sm:col-span-2">
-              <Input id="slug" aria-invalid={!!errors.slug} {...register("slug", { onChange: () => setSlugTouched(true) })} />
+            <Field
+              id="slug"
+              label="Web address (URL slug)"
+              error={err("slug")}
+              hint={
+                // Plain-language help: most artists have never heard the word "slug".
+                <>
+                  {artwork
+                    ? "The last part of this painting's web link. Changing it breaks links you have already shared."
+                    : "Filled in for you from the title, so you can usually leave it. It's the last part of the painting's web link."}{" "}
+                  Use small letters, numbers and hyphens (-) only.
+                  <br />
+                  Link: <span className="break-all font-medium text-foreground/80">{absoluteUrl(artworkPath(slug || "…", artistSlug))}</span>
+                </>
+              }
+              className="sm:col-span-2"
+            >
+              <Input
+                id="slug"
+                placeholder="my-painting-title"
+                aria-invalid={!!errors.slug}
+                {...register("slug", { onChange: () => setSlugTouched(true) })}
+              />
             </Field>
             <fieldset className="space-y-2 sm:col-span-2">
               <legend className="text-sm font-medium leading-none">Categories</legend>

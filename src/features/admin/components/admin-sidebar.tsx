@@ -11,6 +11,7 @@ import {
   LayoutDashboard,
   LogOut,
   MessageSquare,
+  Palette,
   Receipt,
   UserPlus,
   UserRound,
@@ -49,12 +50,18 @@ const PLATFORM_NAV = [
  */
 export function AdminSidebar({
   artistName,
+  portfolioPath,
+  portfolioLive,
   role,
   platformCounts,
   canChangePassword,
   showOrders,
 }: {
   artistName: string;
+  /** The signed-in artist's own public page, /artists/<slug>. */
+  portfolioPath: string;
+  /** False until a platform admin approves the profile; the page isn't public before that. */
+  portfolioLive: boolean;
   role: Role;
   platformCounts: PlatformCounts | null;
   canChangePassword: boolean;
@@ -105,6 +112,23 @@ export function AdminSidebar({
           <Link href="/" target="_blank" className="flex items-center gap-3 rounded-sm px-3 py-2 text-sm text-muted-foreground hover:bg-secondary">
             <ExternalLink className="size-4" aria-hidden /> View site
           </Link>
+          {portfolioLive ? (
+            <Link
+              href={portfolioPath}
+              target="_blank"
+              className="flex items-center gap-3 rounded-sm px-3 py-2 text-sm text-muted-foreground hover:bg-secondary"
+            >
+              <Palette className="size-4" aria-hidden /> View my portfolio
+            </Link>
+          ) : (
+            // A link here would open a "not found" page, so explain why it isn't available yet.
+            <span
+              className="flex cursor-not-allowed items-center gap-3 rounded-sm px-3 py-2 text-sm text-muted-foreground/60"
+              title="Your portfolio goes live once your profile is approved."
+            >
+              <Palette className="size-4" aria-hidden /> Portfolio not live yet
+            </span>
+          )}
           {canChangePassword && (
             <Link
               href="/admin/set-password"
